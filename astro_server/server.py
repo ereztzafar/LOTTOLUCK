@@ -7,7 +7,7 @@ from flatlib import angle
 from flatlib.geopos import GeoPos
 from flatlib import const
 
-INPUT_FILE = 'birth_input.json'
+INPUT_FILE = 'astro_server/birth_input.json'
 
 def load_birth_data():
     with open(INPUT_FILE, encoding='utf-8') as f:
