@@ -1,37 +1,18 @@
-from flask import Flask, request, jsonify
-import os
+import json
 import datetime
 import pytz
 from flatlib.chart import Chart
 from flatlib.datetime import Datetime
-from flatlib import angle, const
+from flatlib import angle
 from flatlib.geopos import GeoPos
-from math import fabs
+from flatlib import const
 
-app = Flask(__name__)
+INPUT_FILE = 'birth_input.json'
 
-PLANETS = [
-    const.SUN, const.MOON, const.MERCURY, const.VENUS, const.MARS,
-    const.JUPITER, const.SATURN, const.URANUS, const.NEPTUNE, const.PLUTO
-]
-SIGNS = [
-    'ARIES', 'TAURUS', 'GEMINI', 'CANCER', 'LEO', 'VIRGO',
-    'LIBRA', 'SCORPIO', 'SAGITTARIUS', 'CAPRICORN', 'AQUARIUS', 'PISCES'
-]
-HARMONIC_ANGLES = [0, 60, 120, 180]
-CHALLENGING_ANGLES = [90, 150]
-
-def create_chart(date_str, time_str, tz, location):
-    dt = Datetime(date_str, time_str, tz)
-    return Chart(dt, location, IDs=PLANETS)
-
-def get_sign(lon):
-    index = int((lon % 360) / 30)
-    return SIGNS[index]
-
-def calc_angle(pos1, pos2):
-    diff = fabs(pos1 - pos2) % 360
-    return min(diff, 360 - diff)
+def load_birth_data():
+    with open(INPUT_FILE, encoding='utf-8') as f:
+        data = json.load(f)
+    return data
 
 def calculate_part_of_fortune(chart):
     asc = chart.get(const.ASC).lon
@@ -39,57 +20,60 @@ def calculate_part_of_fortune(chart):
     sun = chart.get(const.SUN).lon
     return angle.norm(asc + moon - sun)
 
-@app.route('/forecast', methods=['POST'])
-def forecast():
-    try:
-        data = request.json
-        birth_date = data['birth_date']     # פורמט: '1970/11/22'
-        birth_time = data['birth_time']     # פורמט: '06:00'
-        tz_offset = data.get('timezone', '+02:00')
-        lat = data.get('latitude', '32n5')
-        lon = data.get('longitude', '34e53')
-        location = GeoPos(lat, lon)
+def create_chart(date_str, time_str, timezone, location):
+    dt = Datetime(date_str, time_str, timezone)
+    return Chart(dt, location)
 
-        now = datetime.datetime.now(pytz.timezone("Asia/Jerusalem"))
-        today_str = now.strftime('%Y/%m/%d')
+def calc_angle(pos1, pos2):
+    diff = abs(pos1 - pos2) % 360
+    return min(diff, 360 - diff)
 
-        birth_chart = create_chart(birth_date, birth_time, tz_offset, location)
-        transit_chart = create_chart(today_str, '12:00', tz_offset, location)
+def classify_score(score):
+    if score >= 25:
+        return '🟩 יום חזק'
+    elif score >= 15:
+        return '🟨 יום בינוני'
+    else:
+        return '🟥 יום חלש'
 
-        aspects_list = []
+def analyze_today():
+    birth = load_birth_data()
+    birth_date = birth["birth_date"]
+    birth_time = birth["birth_time"]
+    timezone = birth["timezone"]
+    location = GeoPos(birth["location"]["lat"], birth["location"]["lon"])
 
-        for p1 in PLANETS:
-            obj1 = birth_chart.get(p1)
-            for p2 in PLANETS:
-                obj2 = transit_chart.get(p2)
-                angle_val = calc_angle(obj1.lon, obj2.lon)
-                for target_angle in HARMONIC_ANGLES + CHALLENGING_ANGLES:
-                    if abs(angle_val - target_angle) <= 6:
-                        aspects_list.append({
-                            'planet1': p1,
-                            'planet2': p2,
-                            'angle': int(angle_val),
-                            'type': 'harmonic' if target_angle in HARMONIC_ANGLES else 'challenging'
-                        })
+    tz = pytz.timezone("Asia/Jerusalem")
+    now = datetime.datetime.now(tz)
+    today = now.strftime('%Y/%m/%d')
+
+    birth_chart = create_chart(birth_date, birth_time, timezone, location)
+    fortune_birth = calculate_part_of_fortune(birth_chart)
+
+    output = []
+    output.append(f"📅 תחזית אסטרולוגית: {today}")
+    output.append(f"🧬 תאריך לידה: {birth_date} {birth_time}")
+
+    for hour in range(5, 24):
+        time_str = f"{hour:02d}:00"
+        transit_chart = create_chart(today, time_str, timezone, location)
+        fortune_now = calculate_part_of_fortune(transit_chart)
+
+        score = 0
+        for p1 in const.LIST_OBJECTS + ['FORTUNE']:
+            pos1 = birth_chart.get(p1).lon if p1 != 'FORTUNE' else fortune_birth
+            for p2 in const.LIST_OBJECTS + ['FORTUNE']:
+                pos2 = transit_chart.get(p2).lon if p2 != 'FORTUNE' else fortune_now
+                ang_val = calc_angle(pos1, pos2)
+                for h_angle in [0, 60, 120, 180]:
+                    if abs(ang_val - h_angle) <= 6:
+                        score += 1
                         break
 
-        fortune = calculate_part_of_fortune(birth_chart)
-        sign = get_sign(fortune)
-        deg = int(fortune % 30)
-        minutes = int((fortune % 1) * 60)
+        level = classify_score(score)
+        output.append(f"{time_str} — {level} ({score} זוויות חיוביות)")
 
-        return jsonify({
-            'date': today_str,
-            'fortune': {
-                'sign': sign,
-                'deg': deg,
-                'min': minutes
-            },
-            'aspects': aspects_list
-        })
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    print("\n".join(output))
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    analyze_today()
