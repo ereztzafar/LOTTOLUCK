@@ -2,11 +2,15 @@
   "birth_date": "1970/11/22",
   "birth_time": "06:00",
   "timezone": "Asia/Jerusalem",
-  "latitude": "32n5",
-  "longitude": "34e53",
+  "location": {
+    "lat": "32n5",
+    "lon": "34e53"
+  },
   "city": "Petah Tikva",
   "country": "Israel"
 }
+
+
 
 
 
