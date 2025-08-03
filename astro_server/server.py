@@ -15,14 +15,23 @@ def load_birth_data():
     return data
 
 def calculate_part_of_fortune(chart):
-    asc = chart.get(const.ASC).lon
-    moon = chart.get(const.MOON).lon
-    sun = chart.get(const.SUN).lon
-    return angle.norm(asc + moon - sun)
+    try:
+        asc = chart.get(const.ASC).lon
+        moon = chart.get(const.MOON).lon
+        sun = chart.get(const.SUN).lon
+        return angle.norm(asc + moon - sun)
+    except Exception as e:
+        print(f"⚠️ שגיאה בחישוב פורטונה: {e}")
+        return 0.0
 
 def create_chart(date_str, time_str, timezone, location):
-    dt = Datetime(date_str, time_str, timezone)
-    return Chart(dt, location)
+    try:
+        dt = Datetime(date_str, time_str, timezone)
+        print(f"🎯 יוצרת תרשים עבור {date_str} {time_str} באזור זמן {timezone}")
+        return Chart(dt, location)
+    except Exception as e:
+        print(f"❌ שגיאה ביצירת התרשים עבור {date_str} {time_str}: {e}")
+        raise
 
 def calc_angle(pos1, pos2):
     diff = abs(pos1 - pos2) % 360
@@ -47,7 +56,12 @@ def analyze_today():
     now = datetime.datetime.now(tz)
     today = now.strftime('%Y/%m/%d')
 
-    birth_chart = create_chart(birth_date, birth_time, timezone, location)
+    try:
+        birth_chart = create_chart(birth_date, birth_time, timezone, location)
+    except Exception:
+        print("🚫 לא ניתן ליצור תרשים לידה. בדוק את הקלט.")
+        return
+
     fortune_birth = calculate_part_of_fortune(birth_chart)
 
     output = []
@@ -56,19 +70,34 @@ def analyze_today():
 
     for hour in range(5, 24):
         time_str = f"{hour:02d}:00"
-        transit_chart = create_chart(today, time_str, timezone, location)
+        try:
+            transit_chart = create_chart(today, time_str, timezone, location)
+        except Exception:
+            output.append(f"{time_str} — שגיאה ביצירת תרשים טרנזיט")
+            continue
+
         fortune_now = calculate_part_of_fortune(transit_chart)
 
         score = 0
         # הכנה של נקודות לידה (כולל פורטונה)
-        birth_points = [(p, birth_chart.get(p).lon) for p in const.LIST_OBJECTS]
+        birth_points = []
+        for p in const.LIST_OBJECTS:
+            try:
+                birth_points.append((p, birth_chart.get(p).lon))
+            except Exception as e:
+                print(f"⚠️ שגיאה בקואורדינטות של {p} בלידה: {e}")
         birth_points.append(('FORTUNE', fortune_birth))
 
         # הכנה של נקודות טרנזיט (כולל פורטונה)
-        transit_points = [(p, transit_chart.get(p).lon) for p in const.LIST_OBJECTS]
+        transit_points = []
+        for p in const.LIST_OBJECTS:
+            try:
+                transit_points.append((p, transit_chart.get(p).lon))
+            except Exception as e:
+                print(f"⚠️ שגיאה בקואורדינטות של {p} בטרנזיט: {e}")
         transit_points.append(('FORTUNE', fortune_now))
 
-        # חישוב זוויות בין כל זוג
+        # חישוב זוויות
         for name1, pos1 in birth_points:
             for name2, pos2 in transit_points:
                 ang_val = calc_angle(pos1, pos2)
