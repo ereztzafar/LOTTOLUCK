@@ -2,10 +2,13 @@
   "birth_date": "1970/11/22",
   "birth_time": "06:00",
   "timezone": "Asia/Jerusalem",
-  "LOCATION = GeoPos('32n5', '34e53')
-    "city": "Petah Tikva",
-    "country": "Israel"
-  }
+  "latitude": "32n5",
+  "longitude": "34e53",
+  "city": "Petah Tikva",
+  "country": "Israel"
+}
+
+
 
 
 
