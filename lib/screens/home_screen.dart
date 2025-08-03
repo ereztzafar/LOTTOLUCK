@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'forecast_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -30,8 +31,17 @@ class _HomeScreenState extends State<HomeScreen> {
       final time = timeController.text;
       final city = cityController.text;
 
-      // TODO: להעביר לפייתון או לחשב לפי פרטים אלו
-      print('הוזן: $name, $date, $time, $city');
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ForecastScreen(
+            name: name,
+            date: date,
+            time: time,
+            city: city,
+          ),
+        ),
+      );
     }
   }
 
