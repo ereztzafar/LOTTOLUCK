@@ -1,0 +1,4 @@
+flask
+swisseph
+geopy
+pytz
