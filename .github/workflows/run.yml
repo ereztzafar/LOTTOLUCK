@@ -1,9 +1,9 @@
 name: Run AstroLotto
 
 on:
-  workflow_dispatch:  # אפשר להריץ בלחיצה ידנית מה-GitHub UI
+  workflow_dispatch:  # ניתן להריץ ידנית
   schedule:
-    - cron: '0 5 * * *'  # מריץ כל יום בשעה 05:00 בבוקר UTC
+    - cron: '0 5 * * *'  # כל יום ב־05:00 UTC
 
 jobs:
   build:
@@ -17,9 +17,17 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Debug folder structure
+        run: |
+          echo "🔍 Files in root:"
+          ls -la
+          echo "📁 Files in astro_server:"
+          ls -la astro_server
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install flatlib==0.2.0
           pip install -r astro_server/requirements.txt
 
       - name: Run server.py
