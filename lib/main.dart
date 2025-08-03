@@ -14,10 +14,11 @@ class AstroLottoApp extends StatelessWidget {
       title: 'AstroLotto',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        primarySwatch: Colors.purple,
         useMaterial3: true,
       ),
       home: const HomeScreen(),
     );
   }
 }
+
