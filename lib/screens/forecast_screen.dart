@@ -18,3 +18,4 @@ class ForecastScreen extends StatelessWidget {
     );
   }
 }
+
