@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
+import 'screens/forecast_screen.dart';
 
 void main() {
   runApp(const AstroLottoApp());
@@ -12,13 +13,13 @@ class AstroLottoApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'AstroLotto',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.purple,
-        useMaterial3: true,
-      ),
+      theme: ThemeData(primarySwatch: Colors.indigo),
       home: const HomeScreen(),
+      routes: {
+        '/forecast': (context) => const ForecastScreen(),
+      },
     );
   }
 }
+
 
