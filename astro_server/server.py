@@ -60,10 +60,17 @@ def analyze_today():
         fortune_now = calculate_part_of_fortune(transit_chart)
 
         score = 0
-        for p1 in const.LIST_OBJECTS + ['FORTUNE']:
-            pos1 = birth_chart.get(p1).lon if p1 != 'FORTUNE' else fortune_birth
-            for p2 in const.LIST_OBJECTS + ['FORTUNE']:
-                pos2 = transit_chart.get(p2).lon if p2 != 'FORTUNE' else fortune_now
+        # הכנה של נקודות לידה (כולל פורטונה)
+        birth_points = [(p, birth_chart.get(p).lon) for p in const.LIST_OBJECTS]
+        birth_points.append(('FORTUNE', fortune_birth))
+
+        # הכנה של נקודות טרנזיט (כולל פורטונה)
+        transit_points = [(p, transit_chart.get(p).lon) for p in const.LIST_OBJECTS]
+        transit_points.append(('FORTUNE', fortune_now))
+
+        # חישוב זוויות בין כל זוג
+        for name1, pos1 in birth_points:
+            for name2, pos2 in transit_points:
                 ang_val = calc_angle(pos1, pos2)
                 for h_angle in [0, 60, 120, 180]:
                     if abs(ang_val - h_angle) <= 6:
