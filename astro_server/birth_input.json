@@ -1,11 +1,10 @@
 {
-  "name": "erez",
-  "date": "1970-11-22",
-  "time": "06:00",
-  "location": {
-    "city": "Petah Tikva",
-    "country": "Israel",
-    "latitude": 32.0871,
-    "longitude": 34.8870
-  }
+  "birth_date": "1970-11-22",
+  "birth_time": "06:00",
+  "latitude": 32.0871,
+  "longitude": 34.8870,
+  "city": "Petah Tikva",
+  "country": "Israel"
 }
+
+
