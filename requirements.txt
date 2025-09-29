@@ -1,4 +1,0 @@
-flatlib
-pytz
-python-telegram-bot
-swisseph
