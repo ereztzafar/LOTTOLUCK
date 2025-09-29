@@ -1,20 +1,27 @@
-name: astrolotto
+name: lottoluck
 description: אפליקציה אסטרולוגית לחישוב שעות מזל למילוי לוטו
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.3.0 <4.0.0'
+  sdk: ">=3.3.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  intl: ^0.20.2
+  timezone: ^0.9.2
+  google_mobile_ads: ^5.1.0
+  in_app_purchase: ^3.1.11
   cupertino_icons: ^1.0.6
-  intl: ^0.19.0
-  http: ^0.13.6
+  flutter_svg: ^2.0.9
+  http: ^1.2.1
   provider: ^6.1.2
-  shared_preferences: ^2.2.2
+  shared_preferences: ^2.2.3
+  path_provider: ^2.1.1
+  geocoding: ^2.1.0
+  csv: ^5.0.0
 
 dev_dependencies:
   flutter_test:
@@ -22,4 +29,12 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
+  generate: true          # ⬅️ זה הדגל שחסר
+  assets:
+    - assets/forecast.json
+    - assets/worldcities.csv
+    - assets/planets/
+  fonts:
+    - family: NotoSansSymbols2
+      fonts:
+        - asset: assets/fonts/NotoSansSymbols2-Regular.ttf

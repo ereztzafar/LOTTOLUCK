@@ -1,4 +1,3 @@
 flask
-swisseph
-geopy
+flatlib
 pytz

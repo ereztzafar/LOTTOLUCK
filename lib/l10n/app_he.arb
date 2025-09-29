@@ -1,0 +1,39 @@
+{
+  "@@locale": "he",
+  "appTitle": "LOTTOLUCK",
+
+  "register_title": "הרשמה ל־LOTTOLUCK",
+  "tagline_connect_luck": "🧙‍♂️ התחבר למזל שלך",
+
+  "first_name_label": "שם פרטי",
+  "birth_date_label": "תאריך לידה",
+  "birth_time_label": "שעת לידה",
+  "time_zone_label": "אזור זמן (IANA)",
+  "house_system_label": "שיטת חישוב בתים",
+
+  "city_selected_template": "{city}, {country} · Lat: {lat}, Lon: {lon}",
+
+  "save_step1_button": "שמור שלב 1 (לוקאלי)",
+  "show_forecast_button": "הצג תחזית",
+  "form_incomplete_hint": "יש למלא שם, עיר, תאריך, שעה ואזור זמן",
+
+  "daily_forecast_title": "🔮 תחזית יומית • {date}",
+
+  "natal_title": "✨ לידה (Natal)",
+  "transit_title": "🚀 מעבר (Transit)",
+  "no_aspects": "אין היבטים בטווח האורב שהוגדר.",
+  "show_all_aspects": "הצג את כל {count} ההיבטים",
+  "show_less": "הצג פחות",
+
+  "wheel_unavailable": "תצוגת גלגל אינה זמינה.",
+  "hide_aspects": "הסתר אספקטים",
+  "show_aspects": "הצג אספקטים",
+
+  "lucky_hours_title": "🎯 שעות מזל (חינמי – 2 חלונות קרובים)",
+  "open_pro_button": "פתח מסך PRO המלא",
+  "pro_only_snackbar": "מסך PRO זמין למנויים בלבד.",
+
+  "meta_house_tz": "TZ: {tz} • בתים: {house}",
+
+  "error_running_forecast": "שגיאה בהרצת התחזית: {error}"
+}

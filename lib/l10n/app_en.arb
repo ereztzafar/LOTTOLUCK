@@ -1,0 +1,64 @@
+{
+  "@@locale": "en",
+  "appTitle": "LOTTOLUCK",
+
+  "register_title": "Register to LOTTOLUCK",
+  "tagline_connect_luck": "🧙‍♂️ Connect to your luck",
+
+  "first_name_label": "First name",
+  "birth_date_label": "Birth date",
+  "birth_time_label": "Birth time",
+  "time_zone_label": "Time zone (IANA)",
+  "house_system_label": "House system",
+
+  "city_selected_template": "{city}, {country} · Lat: {lat}, Lon: {lon}",
+  "@city_selected_template": {
+    "placeholders": {
+      "city": {"type": "String"},
+      "country": {"type": "String"},
+      "lat": {"type": "String"},
+      "lon": {"type": "String"}
+    }
+  },
+
+  "save_step1_button": "Save step 1 (local)",
+  "show_forecast_button": "Show forecast",
+  "form_incomplete_hint": "Please fill name, city, date, time and time zone",
+
+  "daily_forecast_title": "🔮 Daily forecast • {date}",
+  "@daily_forecast_title": {
+    "placeholders": { "date": {"type": "String"} }
+  },
+
+  "natal_title": "✨ Natal",
+  "transit_title": "🚀 Transit",
+  "no_aspects": "No aspects in the defined orb range.",
+  "show_all_aspects": "Show all {count} aspects",
+  "@show_all_aspects": {
+    "placeholders": { "count": {"type": "int"} }
+  },
+  "show_less": "Show less",
+
+  "wheel_unavailable": "Wheel view is not available.",
+  "hide_aspects": "Hide aspects",
+  "show_aspects": "Show aspects",
+
+  "lucky_hours_title": "🎯 Lucky hours (free – next 2 windows)",
+  "open_pro_button": "Open full PRO screen",
+  "pro_only_snackbar": "PRO screen is available to subscribers only.",
+
+  "meta_house_tz": "TZ: {tz} • Houses: {house}",
+  "@meta_house_tz": {
+    "placeholders": {
+      "tz": {"type": "String"},
+      "house": {"type": "String"}
+    }
+  },
+
+  "error_running_forecast": "Error running forecast: {error}",
+  "@error_running_forecast": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  }
+}

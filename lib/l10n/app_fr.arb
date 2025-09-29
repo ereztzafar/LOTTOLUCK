@@ -1,0 +1,39 @@
+{
+  "@@locale": "fr",
+  "appTitle": "LOTTOLUCK",
+
+  "register_title": "Inscription à LOTTOLUCK",
+  "tagline_connect_luck": "🧙‍♂️ Connectez-vous à votre chance",
+
+  "first_name_label": "Prénom",
+  "birth_date_label": "Date de naissance",
+  "birth_time_label": "Heure de naissance",
+  "time_zone_label": "Fuseau horaire (IANA)",
+  "house_system_label": "Système des maisons",
+
+  "city_selected_template": "{city}, {country} · Lat : {lat}, Lon : {lon}",
+
+  "save_step1_button": "Enregistrer l’étape 1 (local)",
+  "show_forecast_button": "Afficher le prévisionnel",
+  "form_incomplete_hint": "Veuillez renseigner le nom, la ville, la date, l’heure et le fuseau horaire",
+
+  "daily_forecast_title": "🔮 Prévision du jour • {date}",
+
+  "natal_title": "✨ Natal",
+  "transit_title": "🚀 Transit",
+  "no_aspects": "Aucun aspect dans l’orbe défini.",
+  "show_all_aspects": "Afficher les {count} aspects",
+  "show_less": "Afficher moins",
+
+  "wheel_unavailable": "La roue n’est pas disponible.",
+  "hide_aspects": "Masquer les aspects",
+  "show_aspects": "Afficher les aspects",
+
+  "lucky_hours_title": "🎯 Heures porte-bonheur (gratuit – 2 prochains créneaux)",
+  "open_pro_button": "Ouvrir l’écran PRO complet",
+  "pro_only_snackbar": "L’écran PRO est réservé aux abonnés.",
+
+  "meta_house_tz": "TZ : {tz} • Maisons : {house}",
+
+  "error_running_forecast": "Erreur lors de l’exécution du prévisionnel : {error}"
+}
