@@ -1,0 +1,35 @@
+name: Build Flutter Web and commit build/web
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install deps
+        run: flutter pub get
+
+      - name: Build web (html renderer)
+        run: flutter build web --release --web-renderer html --no-tree-shake-icons
+
+      - name: Commit build/web back to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f build/web
+          git commit -m "CI: update build/web [skip ci]" || echo "No changes"
+          git push
