@@ -26,8 +26,24 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        // בראש הקובץ או לפני android { ... } הוסף:
+val flutterVersionCode = project.findProperty("flutter.versionCode")?.toString()?.toInt() ?: 1
+val flutterVersionName = project.findProperty("flutter.versionName")?.toString() ?: "1.0"
+
+android {
+    // ... שאר ההגדרות
+
+    defaultConfig {
+        applicationId = "com.yourcompany.lottoluck"   // עדכן לשם החבילה שלך
+        minSdk = flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
+
+        // השתמש במשתנים שיצרנו
+        versionCode = flutterVersionCode
+        versionName = flutterVersionName
+    }
+}
+
     }
 
     buildTypes {
