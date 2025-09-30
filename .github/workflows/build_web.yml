@@ -19,12 +19,12 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: '3.24.0'   # תואם intl 0.20.2
+          flutter-version: '3.24.0'
 
       - name: Install deps
         run: flutter pub get
 
-      # יוצר קובץ headers כדי לאפשר ל Flutter Web לרוץ על Static hosting
+      # יוצר קובץ _headers בתוך web כדי ש-Render יוסיף CSP שמתיר eval
       - name: Ensure CSP headers for Render
         run: |
           mkdir -p web
@@ -33,7 +33,7 @@ jobs:
             Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src *; object-src 'none'
           EOF
 
-      # בילד יחיד עם כל הדגלים: html renderer, בלי PWA, ועם source maps
+      # בילד יחיד עם renderer html, בלי PWA, ועם source maps לזיהוי שגיאות
       - name: Build web (html renderer, no PWA, source maps)
         run: flutter build web --release --web-renderer html --no-tree-shake-icons --pwa-strategy=none --source-maps
 
