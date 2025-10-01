@@ -31,41 +31,44 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
-      # נוודא שיש לנו כותרת CSP שתשב בתוך build/web
-      - name: Ensure CSP headers
+      # יוצר קובץ _headers מאובטח ללא unsafe-eval
+      - name: Ensure CSP headers (secure)
         run: |
           mkdir -p web
           cat > web/_headers << 'EOF'
           /*
-            Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src *; object-src 'none'
+            Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https: http: ws: wss:; worker-src 'self' blob:; object-src 'none'
           EOF
 
-      - name: Build web release
-        run: flutter build web --release --web-renderer html --pwa-strategy=none --no-tree-shake-icons --source-maps
+      # Build תואם CSP ללא eval
+      - name: Build web release with CSP
+        run: flutter build web --release --web-renderer html --csp --pwa-strategy=none --no-tree-shake-icons
 
       - name: Copy _headers to build
         run: cp web/_headers build/web/_headers
 
-      # גיבוי אם Render מתעלם מ-_headers
+      # Fallback במקרה שהפלטפורמה מתעלמת מ-_headers
       - name: Add static.json fallback
         run: |
           cat > build/web/static.json << 'EOF'
           {
             "headers": {
               "/**": {
-                "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src *; object-src 'none'"
+                "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https: http: ws: wss:; worker-src 'self' blob:; object-src 'none'"
               }
             }
           }
           EOF
 
-      # דחיפת build/web חזרה ל-main
+      # דחיפת build/web לענף הנוכחי, עם טיפול נכון ב-rebase
       - name: Commit and push build/web
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f build/web
-          git commit -m "CI: update build/web [skip ci]" || echo "No changes"
-          git pull --rebase origin ${{ github.ref_name }} || true
-          git push origin HEAD:${{ github.ref_name }}
 
+          git add -f build/web
+          git diff --cached --quiet || git commit -m "CI: update build/web [skip ci]"
+
+          git fetch origin
+          git -c rebase.autoStash=true pull --rebase origin ${{ github.ref_name }} || true
+          git push origin HEAD:${{ github.ref_name }}
