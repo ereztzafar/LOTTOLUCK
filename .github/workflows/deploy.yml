@@ -1,2 +1,71 @@
-- name: Copy headers
-  run: cp web/_headers build/web/_headers
+name: Build Flutter Web and update build/web
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "lib/**"
+      - "web/**"
+      - "pubspec.yaml"
+      - ".github/workflows/deploy.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build-web:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: "3.24.0"
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      # נוודא שיש לנו כותרת CSP שתשב בתוך build/web
+      - name: Ensure CSP headers
+        run: |
+          mkdir -p web
+          cat > web/_headers << 'EOF'
+          /*
+            Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src *; object-src 'none'
+          EOF
+
+      - name: Build web release
+        run: flutter build web --release --web-renderer html --pwa-strategy=none --no-tree-shake-icons --source-maps
+
+      - name: Copy _headers to build
+        run: cp web/_headers build/web/_headers
+
+      # גיבוי אם Render מתעלם מ-_headers
+      - name: Add static.json fallback
+        run: |
+          cat > build/web/static.json << 'EOF'
+          {
+            "headers": {
+              "/**": {
+                "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src *; object-src 'none'"
+              }
+            }
+          }
+          EOF
+
+      # דחיפת build/web חזרה ל-main
+      - name: Commit and push build/web
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f build/web
+          git commit -m "CI: update build/web [skip ci]" || echo "No changes"
+          git pull --rebase origin ${{ github.ref_name }} || true
+          git push origin HEAD:${{ github.ref_name }}
+
