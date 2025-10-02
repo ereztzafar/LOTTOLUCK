@@ -6,21 +6,12 @@ import sys
 import json
 import subprocess
 from pathlib import Path
-from flask import Flask, request, Response
-from flask_cors import CORS  # NEW
 from datetime import datetime, timezone
 
+from flask import Flask, request, Response
+from flask_cors import CORS
 
 app = Flask(__name__)
-
-@app.route("/health", methods=["GET"])
-def health():
-    return {
-        "ok": True,
-        "status": "up",
-        "time": datetime.now(timezone.utc).isoformat(),
-        "commit": (os.getenv("RENDER_GIT_COMMIT") or "")[:7]
-    }
 
 # --- JSON / UTF-8 ---
 app.config["JSON_AS_ASCII"] = False
@@ -34,8 +25,7 @@ CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=False)
 
 HERE = Path(__file__).resolve().parent
 FORECAST_SCRIPT = HERE / "astrology_forecast.py"  # המסך הרגיל
-PRO_SCRIPT      = HERE / "astro_calc_api.py"      # מסך PRO (3 ימים/טרנזיטים)
-
+PRO_SCRIPT = HERE / "astro_calc_api.py"          # מסך PRO (3 ימים/טרנזיטים)
 
 # ---------- Utilities ----------
 
@@ -118,13 +108,18 @@ def run_pro_cli(transit_date: str, birth_date: str, birth_time: str, tz: str,
     ]
     return _run_subprocess(args, HERE, timeout_sec)
 
-
 # ---------- Health / Diagnostics ----------
 
 @app.get("/health")
 def health():
-    """בריאות סטנדרטית ל-Render/קוברנטיס."""
-    return _json_response({"status": "ok", "service": "astro_server"})
+    """בריאות ל-Render ולבדיקות עשן."""
+    return _json_response({
+        "ok": True,
+        "status": "up",
+        "service": "astro_server",
+        "time": datetime.now(timezone.utc).isoformat(),
+        "commit": (os.getenv("RENDER_GIT_COMMIT") or "")[:7]
+    })
 
 @app.get("/ping")
 def ping():
@@ -145,19 +140,17 @@ def diag():
         "pro_path": str(PRO_SCRIPT),
     })
 
-
 # ---------- Connection header fix ----------
 
 @app.after_request
 def add_conn_close(resp: Response):
     """
     סוגר keep-alive כדי למנוע בעיות "Connection closed while receiving data" בצד הלקוח.
-    אם תראה שאין צורך – אפשר להסיר.
+    אם תראה שאין צורך, אפשר להסיר.
     """
     resp.headers["Connection"] = "close"
     resp.headers["Cache-Control"] = "no-store"
     return resp
-
 
 # ---------- API ----------
 
@@ -169,22 +162,22 @@ def forecast():
         return _json_response({"ok": False, "error": "Invalid JSON body"}, 400)
 
     date = (data.get("date") or "").strip()
-    time = (data.get("time") or "").strip()
+    time_ = (data.get("time") or "").strip()
     city = (data.get("city") or "").strip()
-    lat  = data.get("lat", "")
-    lon  = data.get("lon", "")
+    lat = data.get("lat", "")
+    lon = data.get("lon", "")
     lang = (data.get("lang") or "he").strip()
     tz_id = (data.get("tz") or "UTC").strip()
     house_system = (data.get("house_system") or "placidus").strip()
     timeout_sec = int(data.get("timeout", 22))
 
-    missing = [k for k, v in [("date", date), ("time", time), ("city", city), ("lat", lat), ("lon", lon)] if not v]
+    missing = [k for k, v in [("date", date), ("time", time_), ("city", city), ("lat", lat), ("lon", lon)] if not v]
     if missing:
         return _json_response({"ok": False, "error": f"Missing required fields: {', '.join(missing)}"}, 400)
 
     try:
         result = run_forecast_cli(
-            date, time, city, lat, lon, lang, tz_id, house_system,
+            date, time_, city, lat, lon, lang, tz_id, house_system,
             timeout_sec=timeout_sec
         )
         return _json_response(result, 200)
@@ -197,7 +190,6 @@ def forecast():
     except Exception as e:
         return _json_response({"ok": False, "error": f"Unexpected error: {e}"}, 500)
 
-
 @app.post("/pro_forecast")
 def pro_forecast():
     try:
@@ -206,21 +198,21 @@ def pro_forecast():
         return _json_response({"ok": False, "error": "Invalid JSON body"}, 400)
 
     transit_date = (data.get("transit_date") or "").strip()
-    birth_date   = (data.get("birth_date") or "").strip()
-    birth_time   = (data.get("birth_time") or "").strip()
-    tz           = (data.get("tz") or "").strip()
-    lat          = data.get("lat", "")
-    lon          = data.get("lon", "")
-    lang         = (data.get("lang") or "he").strip()
-    timeout_sec  = int(data.get("timeout", 25))
+    birth_date = (data.get("birth_date") or "").strip()
+    birth_time = (data.get("birth_time") or "").strip()
+    tz = (data.get("tz") or "").strip()
+    lat = data.get("lat", "")
+    lon = data.get("lon", "")
+    lang = (data.get("lang") or "he").strip()
+    timeout_sec = int(data.get("timeout", 25))
 
     missing = [k for k, v in [
         ("transit_date", transit_date),
-        ("birth_date",   birth_date),
-        ("birth_time",   birth_time),
-        ("tz",           tz),
-        ("lat",          lat),
-        ("lon",          lon),
+        ("birth_date", birth_date),
+        ("birth_time", birth_time),
+        ("tz", tz),
+        ("lat", lat),
+        ("lon", lon),
     ] if not v]
     if missing:
         return _json_response({"ok": False, "error": f"Missing required fields: {', '.join(missing)}"}, 400)
@@ -236,7 +228,6 @@ def pro_forecast():
         return _json_response({"ok": False, "error": str(e)}, 500)
     except Exception as e:
         return _json_response({"ok": False, "error": f"Unexpected error: {e}"}, 500)
-
 
 # ---------- Main (dev only) ----------
 
