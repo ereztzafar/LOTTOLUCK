@@ -1,0 +1,6 @@
+flask
+flask-cors
+flatlib
+pytz
+python-telegram-bot
+requests
