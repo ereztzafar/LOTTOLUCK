@@ -1,6 +1,7 @@
 flask
 flask-cors
+gunicorn
 flatlib
 pytz
-python-telegram-bot
 requests
+
