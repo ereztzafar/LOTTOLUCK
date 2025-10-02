@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: lottoluck-api
+    env: python
+    plan: free   # או starter/pro אם תשדרג
+    rootDir: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn astro_server:app --preload --workers=2 --threads=8 --bind 0.0.0.0:$PORT"
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.4
+      - key: TELEGRAM_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
