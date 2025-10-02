@@ -8,8 +8,19 @@ import subprocess
 from pathlib import Path
 from flask import Flask, request, Response
 from flask_cors import CORS  # NEW
+from datetime import datetime, timezone
+
 
 app = Flask(__name__)
+
+@app.route("/health", methods=["GET"])
+def health():
+    return {
+        "ok": True,
+        "status": "up",
+        "time": datetime.now(timezone.utc).isoformat(),
+        "commit": (os.getenv("RENDER_GIT_COMMIT") or "")[:7]
+    }
 
 # --- JSON / UTF-8 ---
 app.config["JSON_AS_ASCII"] = False
