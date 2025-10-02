@@ -1,6 +1,5 @@
 # FILE: python/astro_server.py
 # שרת Flask קטן שעוטף סקריפטי פייתון כך שאפליקציית Flutter תוכל לקרוא אליהם ב-HTTP
-# Android אמולטור: http://10.0.2.2:8000 , iOS Simulator: http://127.0.0.1:8000
 
 import os
 import sys
@@ -8,12 +7,19 @@ import json
 import subprocess
 from pathlib import Path
 from flask import Flask, request, Response
+from flask_cors import CORS  # NEW
 
 app = Flask(__name__)
 
-# הבטחת יוניקוד מלא בתשובות JSON (עברית, סמלים)
+# --- JSON / UTF-8 ---
 app.config["JSON_AS_ASCII"] = False
 app.config["JSONIFY_MIMETYPE"] = "application/json; charset=utf-8"
+# (לא מזיק) המנע ממיון מפתחות אוטומטי
+app.config["JSON_SORT_KEYS"] = False
+
+# --- CORS (לפרונט ברנדר) ---
+# בפרודקשן מומלץ להחליף origins לכתובת של הפרונט שלך במקום "*"
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=False)
 
 HERE = Path(__file__).resolve().parent
 FORECAST_SCRIPT = HERE / "astrology_forecast.py"  # המסך הרגיל
@@ -23,10 +29,7 @@ PRO_SCRIPT      = HERE / "astro_calc_api.py"      # מסך PRO (3 ימים/טר�
 # ---------- Utilities ----------
 
 def _json_response(pyobj: dict | list, status: int = 200) -> Response:
-    """
-    החזרת JSON עם Content-Length ו-charset, כדי למנוע 'Connection closed while receiving data'
-    בצד הלקוח. לא משתמשים ב-jsonify כדי לשלוט ידנית בקידוד.
-    """
+    """החזרת JSON עם קידוד מלא (UTF-8) ו-Content-Type נכון."""
     payload = json.dumps(pyobj, ensure_ascii=False)
     return Response(payload, status=status, mimetype="application/json; charset=utf-8")
 
@@ -68,7 +71,6 @@ def run_forecast_cli(date: str, time: str, city: str, lat, lon,
     """מריץ את astrology_forecast.py (מסך רגיל) עם כל הפרמטרים שהקליינט שולח."""
     if not FORECAST_SCRIPT.exists():
         raise FileNotFoundError(f"astrology_forecast.py not found at: {FORECAST_SCRIPT}")
-    # שים לב: אם הסקריפט שלך מצפה בדיוק לסדר/כמות זו (date,time,city,lat,lon,lang,tz,house_system)
     args = [
         sys.executable,
         str(FORECAST_SCRIPT),
@@ -108,19 +110,21 @@ def run_pro_cli(transit_date: str, birth_date: str, birth_time: str, tz: str,
 
 # ---------- Health / Diagnostics ----------
 
+@app.get("/health")
+def health():
+    """בריאות סטנדרטית ל-Render/קוברנטיס."""
+    return _json_response({"status": "ok", "service": "astro_server"})
+
 @app.get("/ping")
 def ping():
-    """בריאות/בדיקה מהירה."""
     return _json_response({"ok": True, "msg": "pong"})
 
 @app.get("/_routes")
 def routes():
-    """רשימת הנתיבים הפעילים (דיאגנוסטיקה)."""
     return _json_response({"routes": [r.rule for r in app.url_map.iter_rules()]})
 
 @app.get("/diag")
 def diag():
-    """מידע מהיר לדיאגנוסטיקה."""
     return _json_response({
         "ok": True,
         "cwd": str(HERE),
@@ -136,11 +140,10 @@ def diag():
 @app.after_request
 def add_conn_close(resp: Response):
     """
-    סוגר keep-alive בפיתוח כדי למנוע "Connection closed while receiving data"
-    בצד ה-Flutter/אמולטור. בטוח לשימוש בפיתוח.
+    סוגר keep-alive כדי למנוע בעיות "Connection closed while receiving data" בצד הלקוח.
+    אם תראה שאין צורך – אפשר להסיר.
     """
     resp.headers["Connection"] = "close"
-    # אופציונלי: למנוע קאשינג בעת פיתוח
     resp.headers["Cache-Control"] = "no-store"
     return resp
 
@@ -149,20 +152,6 @@ def add_conn_close(resp: Response):
 
 @app.post("/forecast")
 def forecast():
-    """
-    גוף הבקשה (JSON):
-    {
-      "date": "YYYY-MM-DD",
-      "time": "HH:mm",
-      "city": "Petah Tiqwa",
-      "lat": "32.0833",
-      "lon": "34.8833",
-      "lang": "he",
-      "tz":   "Asia/Jerusalem",     # <<< נצרך ומועבר לסקריפט
-      "house_system": "placidus",   # <<< נצרך ומועבר לסקריפט
-      "timeout": 22                 # אופציונלי
-    }
-    """
     try:
         data = request.get_json(force=True) or {}
     except Exception:
@@ -200,19 +189,6 @@ def forecast():
 
 @app.post("/pro_forecast")
 def pro_forecast():
-    """
-    גוף הבקשה (JSON) למסך PRO:
-    {
-      "transit_date": "YYYY-MM-DD",
-      "birth_date":   "YYYY-MM-DD",
-      "birth_time":   "HH:mm",
-      "tz":           "Asia/Jerusalem",
-      "lat":          "32.0833",
-      "lon":          "34.8833",
-      "lang":         "he",
-      "timeout":      25
-    }
-    """
     try:
         data = request.get_json(force=True) or {}
     except Exception:
@@ -251,10 +227,8 @@ def pro_forecast():
         return _json_response({"ok": False, "error": f"Unexpected error: {e}"}, 500)
 
 
-# ---------- Main ----------
+# ---------- Main (dev only) ----------
 
 if __name__ == "__main__":
-    # הפורט ניתן לשינוי דרך משתנה סביבה PORT (ברירת מחדל 8000)
     port = int(os.environ.get("PORT", "8000"))
-    # host=0.0.0.0 כדי שיהיה נגיש גם מאמולטור; use_reloader=False למנוע תהליכים כפולים
     app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False, threaded=True)
