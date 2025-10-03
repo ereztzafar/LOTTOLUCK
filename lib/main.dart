@@ -113,7 +113,7 @@ class LottoLuckApp extends StatelessWidget {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.amבר,
+          backgroundColor: Colors.amber,
           foregroundColor: Colors.black,
           shape: const StadiumBorder(),
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 18),
@@ -624,7 +624,7 @@ Color _aspectColor(String aspectName) {
   if (a.contains('trine') || a.contains('משולש')) return Colors.blueAccent;
   if (a.contains('opposition') || a.contains('אופוזיציה')) return Colors.orangeAccent;
   if (a.contains('sextile') || a.contains('שישית')) return Colors.tealAccent;
-  if (a.contains('conjunction') || a.contains('צמידות')) return Colors.amברAccent;
+  if (a.contains('conjunction') || a.contains('צמידות')) return Colors.amberAccent;
   return Colors.white70;
 }
 
@@ -1079,7 +1079,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _title(l.natal_title, Colors.amבר),
+                  _title(l.natal_title, Colors.amber),
                   if (natal.isEmpty)
                     const Text('-', style: TextStyle(color: Colors.white54))
                   else
@@ -1093,7 +1093,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
                           text: TextSpan(
                             style: const TextStyle(color: Colors.white, height: 1.4),
                             children: [
-                              ..._nameWithR(label, retro, Colors.amבר),
+                              ..._nameWithR(label, retro, Colors.amber),
                               const TextSpan(text: ': '),
                               TextSpan(text: _cleanRetro(value)),
                             ],
@@ -1195,7 +1195,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
                         const TextSpan(text: ') - ', style: TextStyle(color: Colors.white70)),
                         TextSpan(text: aspect, style: TextStyle(color: _aspectColor(aspect), fontWeight: FontWeight.bold)),
                         TextSpan(text: ' ($orb°) - ', style: const TextStyle(color: Colors.white70)),
-                        ..._nameWithR(nPlanet, nRetro, Colors.amבר),
+                        ..._nameWithR(nPlanet, nRetro, Colors.amber),
                         const TextSpan(text: ' (', style: TextStyle(color: Colors.white70)),
                         TextSpan(text: nPos, style: const TextStyle(color: Colors.white70)),
                         const TextSpan(text: ')', style: const TextStyle(color: Colors.white70)),
