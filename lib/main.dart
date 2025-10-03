@@ -1,9 +1,9 @@
+// lib/main.dart
 import 'dart:math' as math;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:lottoluck/utils/platform_x.dart';
-// ... אל תייבא dart:io
 
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
@@ -19,6 +19,12 @@ import 'package:timezone/data/latest_all.dart' as tzdata;
 
 import 'services/asc_mc.dart';
 import 'widgets/astro_wheel.dart';
+
+/// עזר: האם אנו רצים על מובייל (אנדרואיד/אייפון) — תקין גם ב־Web/דסקטופ
+bool get kIsMobile =>
+    !kIsWeb &&
+    (defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS);
 
 /// ===== פונקציות גלובליות לשיטת בתים =====
 String houseSystemApiValue(HouseSystem hs) {
@@ -80,7 +86,7 @@ String houseSystemLabel(BuildContext context, HouseSystem hs) {
       return t(
         'Placidus',
         'פלסידוס',
-        'بلَسيدוס',
+        'بلَسيدوس',
         'Плацидус',
         'Placidus',
         'Plácido',
@@ -89,12 +95,12 @@ String houseSystemLabel(BuildContext context, HouseSystem hs) {
   }
 }
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   tzdata.initializeTimeZones();
 
-  await PurchaseService.instance.init(); // אם אין תמיכה בווב — ראה "דרך נקייה" למטה
-  if (PlatformX.isMobile) {
+  await PurchaseService.instance.init();
+  if (kIsMobile) {
     await AdsService.init();
   }
   runApp(const LottoLuckApp());
@@ -299,6 +305,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     setState(() => _tzId = guess);
   }
 
+  /// קריאה ל־API תחזית (שרת Render)
   Future<Map<String, dynamic>> _runForecast() async {
     final dateStr = DateFormat('yyyy-MM-dd').format(selectedDate!);
     final timeStr =
@@ -354,7 +361,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       final birthTimeStr =
           '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}';
 
-      if (Platform.isAndroid || Platform.isIOS) {
+      if (kIsMobile) {
         await AdsService.showInterstitialIfNeeded(isPro: false);
       }
 
@@ -797,7 +804,6 @@ class _ForecastScreenState extends State<ForecastScreen> {
 
   bool _retroFrom(dynamic v) => _isRetro(v?.toString() ?? '');
 
-  // יוצרת וריאציות של מפתח כדי למצוא ב־flags גם אם הגיעו "☿ Mercury ℞" או "Mercury"
   Iterable<String> _keyVariants(String raw) sync* {
     final cleaned = raw
         .replaceAll('\u200f', '')
@@ -1220,10 +1226,10 @@ class _ForecastScreenState extends State<ForecastScreen> {
             padding: const EdgeInsets.symmetric(vertical: 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: const [
-                Icon(Icons.info_outline, color: Colors.white70),
-                SizedBox(height: 8),
-                Text('גלגל לא זמין', style: TextStyle(color: Colors.white70), textAlign: TextAlign.center),
+              children: [
+                const Icon(Icons.info_outline, color: Colors.white70),
+                const SizedBox(height: 8),
+                Text(l.wheel_unavailable, style: const TextStyle(color: Colors.white70), textAlign: TextAlign.center),
               ],
             ),
           ),
@@ -1264,7 +1270,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
                   size: 18,
                   color: Colors.white70,
                 ),
-                label: const Text('הצג או הסתר אספקטים', style: TextStyle(color: Colors.white70)),
+                label: Text(showWheelAspects ? l.hide_aspects : l.show_aspects, style: const TextStyle(color: Colors.white70)),
               ),
             ),
           ],
@@ -1276,7 +1282,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
       final List<dynamic> lucky = (widget.forecastData['lucky_hours'] as List?) ?? [];
       String rng(Map e) => "🔸 ${e['from'] ?? ''} - ${e['to'] ?? ''}";
 
-      final meta = AppLocalizations.of(context)!.meta_house_tz(widget.tz, houseSystemLabel(context, widget.houseSystem));
+      final meta = l.meta_house_tz(widget.tz, houseSystemLabel(context, widget.houseSystem));
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1284,7 +1290,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
           Text(meta, style: const TextStyle(color: Colors.white70)),
           const SizedBox(height: 8),
           Text(
-            AppLocalizations.of(context)!.lucky_hours_title,
+            l.lucky_hours_title,
             style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 6),
@@ -1295,7 +1301,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
           const SizedBox(height: 12),
           ElevatedButton.icon(
             onPressed: () async {
-              if (Platform.isAndroid || Platform.isIOS) {
+              if (kIsMobile) {
                 await AdsService.showInterstitialIfNeeded(isPro: false);
               }
               if (!mounted) return;
@@ -1315,9 +1321,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
               );
             },
             icon: const Icon(Icons.workspace_premium),
-            label: AppLocalizations.of(context)!.open_pro_button.isEmpty
-                ? const Text('Open PRO')
-                : Text(AppLocalizations.of(context)!.open_pro_button),
+            label: Text(l.open_pro_button),
           ),
         ],
       );
@@ -1325,7 +1329,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.daily_forecast_title(widget.forecastData['date'] ?? '')),
+        title: Text(l.daily_forecast_title(widget.forecastData['date'] ?? '')),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
