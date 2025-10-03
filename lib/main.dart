@@ -79,7 +79,7 @@ String houseSystemLabel(BuildContext context, HouseSystem hs) {
       return t(
         'Placidus',
         'פלסידוס',
-        'بلَسيدوس',
+        'بلَسيدוס',
         'Плацидус',
         'Placidus',
         'Plácido',
@@ -113,7 +113,7 @@ class LottoLuckApp extends StatelessWidget {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.amber,
+          backgroundColor: Colors.amבר,
           foregroundColor: Colors.black,
           shape: const StadiumBorder(),
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 18),
@@ -298,50 +298,40 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     setState(() => _tzId = guess);
   }
 
-
-Future<Map<String, dynamic>> _runForecast() async {
-  final dateStr = DateFormat('yyyy-MM-dd').format(selectedDate!);
-  final timeStr =
-      '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}';
-  final houseSystemParam = houseSystemApiValue(_houseSystem);
-  final lang = Localizations.localeOf(context).languageCode;
-
-  // כתובת הפרודקשן שלך ב-Render
   Future<Map<String, dynamic>> _runForecast() async {
-  final dateStr = DateFormat('yyyy-MM-dd').format(selectedDate!);
-  final timeStr =
-      '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}';
-  final houseSystemParam = houseSystemApiValue(_houseSystem);
-  final lang = Localizations.localeOf(context).languageCode;
+    final dateStr = DateFormat('yyyy-MM-dd').format(selectedDate!);
+    final timeStr =
+        '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}';
+    final houseSystemParam = houseSystemApiValue(_houseSystem);
+    final lang = Localizations.localeOf(context).languageCode;
 
-  final uri = Uri.parse('https://lottoluck-api.onrender.com/forecast');
+    final uri = Uri.parse('https://lottoluck-api.onrender.com/forecast');
 
-  final payload = {
-    'date': dateStr,
-    'time': timeStr,
-    'city': selectedCity!.name,
-    'lat': selectedCity!.latitude.toString(),
-    'lon': selectedCity!.longitude.toString(),
-    'lang': lang,
-    'tz': _tzId,
-    'house_system': houseSystemParam,
-  };
+    final payload = {
+      'date': dateStr,
+      'time': timeStr,
+      'city': selectedCity!.name,
+      'lat': selectedCity!.latitude.toString(),
+      'lon': selectedCity!.longitude.toString(),
+      'lang': lang,
+      'tz': _tzId,
+      'house_system': houseSystemParam,
+    };
 
-  final resp = await http
-      .post(
-        uri,
-        headers: const {'Content-Type': 'application/json; charset=utf-8'},
-        body: jsonEncode(payload),
-      )
-      .timeout(const Duration(seconds: 60));
+    final resp = await http
+        .post(
+          uri,
+          headers: const {'Content-Type': 'application/json; charset=utf-8'},
+          body: jsonEncode(payload),
+        )
+        .timeout(const Duration(seconds: 60));
 
-  if (resp.statusCode >= 200 && resp.statusCode < 300) {
-    return jsonDecode(resp.body) as Map<String, dynamic>;
-  } else {
-    throw Exception('HTTP ${resp.statusCode} from $uri\n${resp.body}');
+    if (resp.statusCode >= 200 && resp.statusCode < 300) {
+      return jsonDecode(resp.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('HTTP ${resp.statusCode} from $uri\n${resp.body}');
+    }
   }
-}
-
 
   Future<void> _submit() async {
     if (!isFormComplete) return;
@@ -634,7 +624,7 @@ Color _aspectColor(String aspectName) {
   if (a.contains('trine') || a.contains('משולש')) return Colors.blueAccent;
   if (a.contains('opposition') || a.contains('אופוזיציה')) return Colors.orangeAccent;
   if (a.contains('sextile') || a.contains('שישית')) return Colors.tealAccent;
-  if (a.contains('conjunction') || a.contains('צמידות')) return Colors.amberAccent;
+  if (a.contains('conjunction') || a.contains('צמידות')) return Colors.amברAccent;
   return Colors.white70;
 }
 
@@ -1089,7 +1079,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _title(l.natal_title, Colors.amber),
+                  _title(l.natal_title, Colors.amבר),
                   if (natal.isEmpty)
                     const Text('-', style: TextStyle(color: Colors.white54))
                   else
@@ -1103,7 +1093,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
                           text: TextSpan(
                             style: const TextStyle(color: Colors.white, height: 1.4),
                             children: [
-                              ..._nameWithR(label, retro, Colors.amber),
+                              ..._nameWithR(label, retro, Colors.amבר),
                               const TextSpan(text: ': '),
                               TextSpan(text: _cleanRetro(value)),
                             ],
@@ -1205,10 +1195,10 @@ class _ForecastScreenState extends State<ForecastScreen> {
                         const TextSpan(text: ') - ', style: TextStyle(color: Colors.white70)),
                         TextSpan(text: aspect, style: TextStyle(color: _aspectColor(aspect), fontWeight: FontWeight.bold)),
                         TextSpan(text: ' ($orb°) - ', style: const TextStyle(color: Colors.white70)),
-                        ..._nameWithR(nPlanet, nRetro, Colors.amber),
+                        ..._nameWithR(nPlanet, nRetro, Colors.amבר),
                         const TextSpan(text: ' (', style: TextStyle(color: Colors.white70)),
                         TextSpan(text: nPos, style: const TextStyle(color: Colors.white70)),
-                        const TextSpan(text: ')', style: TextStyle(color: Colors.white70)),
+                        const TextSpan(text: ')', style: const TextStyle(color: Colors.white70)),
                       ],
                     ),
                   ),
@@ -1229,10 +1219,10 @@ class _ForecastScreenState extends State<ForecastScreen> {
             padding: const EdgeInsets.symmetric(vertical: 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.info_outline, color: Colors.white70),
-                const SizedBox(height: 8),
-                Text(l.wheel_unavailable, style: const TextStyle(color: Colors.white70), textAlign: TextAlign.center),
+              children: const [
+                Icon(Icons.info_outline, color: Colors.white70),
+                SizedBox(height: 8),
+                Text('גלגל לא זמין', style: TextStyle(color: Colors.white70), textAlign: TextAlign.center),
               ],
             ),
           ),
@@ -1273,7 +1263,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
                   size: 18,
                   color: Colors.white70,
                 ),
-                label: Text(showWheelAspects ? l.hide_aspects : l.show_aspects, style: const TextStyle(color: Colors.white70)),
+                label: const Text('הצג או הסתר אספקטים', style: TextStyle(color: Colors.white70)),
               ),
             ),
           ],
@@ -1285,7 +1275,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
       final List<dynamic> lucky = (widget.forecastData['lucky_hours'] as List?) ?? [];
       String rng(Map e) => "🔸 ${e['from'] ?? ''} - ${e['to'] ?? ''}";
 
-      final meta = l.meta_house_tz(widget.tz, houseSystemLabel(context, widget.houseSystem));
+      final meta = AppLocalizations.of(context)!.meta_house_tz(widget.tz, houseSystemLabel(context, widget.houseSystem));
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1293,7 +1283,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
           Text(meta, style: const TextStyle(color: Colors.white70)),
           const SizedBox(height: 8),
           Text(
-            l.lucky_hours_title,
+            AppLocalizations.of(context)!.lucky_hours_title,
             style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 6),
@@ -1324,7 +1314,9 @@ class _ForecastScreenState extends State<ForecastScreen> {
               );
             },
             icon: const Icon(Icons.workspace_premium),
-            label: Text(l.open_pro_button),
+            label: AppLocalizations.of(context)!.open_pro_button.isEmpty
+                ? const Text('Open PRO')
+                : Text(AppLocalizations.of(context)!.open_pro_button),
           ),
         ],
       );
@@ -1332,7 +1324,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l.daily_forecast_title(widget.forecastData['date'] ?? '')),
+        title: Text(AppLocalizations.of(context)!.daily_forecast_title(widget.forecastData['date'] ?? '')),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
