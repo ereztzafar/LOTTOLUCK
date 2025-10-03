@@ -7,7 +7,10 @@ import 'package:flutter/widgets.dart' as widgets;
 import 'package:http/http.dart' as http;
 import 'package:timezone/timezone.dart' as tz;
 
-/// PRO - 3 ימים + תקציר לכל יום + "30/100 יום קדימה" (אותה לוגיקת ניקוד כמו בפייתון)
+// NEW: שימוש בלקוח ה־API עם הדומיין בענן
+import 'package:lottoluck/services/api_client.dart';
+
+/// PRO - 3 ימים + תקציר לכל יום + "15/100 יום קדימה" (אותה לוגיקת ניקוד כמו בפייתון)
 class ProForecastScreen extends StatefulWidget {
   final String birthDate; // yyyy-MM-dd
   final String birthTime; // HH:mm
@@ -44,14 +47,14 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
   // =============================================================
   // === תצורה: תוצאות מדויקות (ללא איחוד בכלל) ===
   // =============================================================
-  static const int _DEDUPE_MIN = 0;           // 0 = ביטול איחוד חלונות סמוכים (לא בשימוש בפועל)
+  static const int _DEDUPE_MIN = 0;           // 0 = ביטול איחוד חלונות סמוכים
   static const int _MAX_PER_DAY = 999999;     // אין הגבלת כמות
   static const double _SCORE_95 = 9.75;       // סף 95-100 (כמו בפייתון)
-  static const double _SCORE_90 = 9.0;       // סף 90-95 (כמו בפייתון)
+  static const double _SCORE_90 = 9.0;        // סף 90-95 (כמו בפייתון)
   static const int _MAX_URANUS_PER_MIN = 5;   // תקרת תרומת אוראנוס לדקה (לפרסור fallback בלבד)
 
-  // כמה ימים קדימה ל-tail (אפשר 30/60/100 לפי הצורך)
-  static const int _DAYS_AHEAD = 30;
+  // כמה ימים קדימה ל-tail (שונה ל-15)
+  static const int _DAYS_AHEAD = 15;
 
   @override
   void initState() {
@@ -185,12 +188,16 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
       'lang': lang,
     };
 
-    if (Platform.isAndroid || Platform.isIOS) {
-      final host = Platform.isAndroid ? '10.0.2.2' : '127.0.0.1';
-      final uri = Uri.parse('http://$host:8000/pro_forecast');
+    // *** MOBILE/WEB: תמיד דרך שרת הענן ***
+    if (Platform.isAndroid || Platform.isIOS || kIsWeb) {
       final resp = await http
-          .post(uri, headers: const {'Content-Type': 'application/json; charset=utf-8'}, body: jsonEncode(payload))
+          .post(
+            Api.pro(),
+            headers: const {'Content-Type': 'application/json; charset=utf-8'},
+            body: jsonEncode(payload),
+          )
           .timeout(const Duration(seconds: 90));
+
       final body = utf8.decode(resp.bodyBytes);
       if (resp.statusCode >= 200 && resp.statusCode < 300) {
         final parsed = jsonDecode(body);
@@ -200,18 +207,18 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
       throw Exception('HTTP ${resp.statusCode}: $body');
     }
 
-    // Desktop (רץ פייתון מקומי)
+    // *** DESKTOP DEV ONLY: הרצה מקומית של הסקריפט (fallback) ***
     final res = await Process.run(
       'python',
       [
         'python/astro_calc_api.py',
-        '--date', birthDate,           // אם הסקריפט מצפה לטרנזיט כאן, החלף ל-transitDate
+        '--date', birthDate,
         '--time', birthTime,
         '--lat', lat,
         '--lon', lon,
         '--tz', tzForServer,
         '--lang', lang,
-        '--transit-date', transitDate, // פרמטר ייעודי ליום הטרנזיט
+        '--transit-date', transitDate,
       ],
       stdoutEncoding: utf8,
       stderrEncoding: utf8,
@@ -580,7 +587,8 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('🎟️ PRO — 3 ימים + 30/100 יום'),
+        // עודכן ל-15 ימים קדימה
+        title: const Text('🎟️ PRO — 3 ימים + 15/100 יום'),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
