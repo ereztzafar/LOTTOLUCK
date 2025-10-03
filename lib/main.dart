@@ -1,7 +1,8 @@
-import 'dart:io';
 import 'dart:math' as math;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:lottoluck/utils/platform_x.dart';
+// ... אל תייבא dart:io
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -88,12 +89,12 @@ String houseSystemLabel(BuildContext context, HouseSystem hs) {
   }
 }
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   tzdata.initializeTimeZones();
 
-  await PurchaseService.instance.init();
-  if (Platform.isAndroid || Platform.isIOS) {
+  await PurchaseService.instance.init(); // אם אין תמיכה בווב — ראה "דרך נקייה" למטה
+  if (PlatformX.isMobile) {
     await AdsService.init();
   }
   runApp(const LottoLuckApp());
