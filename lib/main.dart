@@ -1,7 +1,7 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -307,6 +307,13 @@ Future<Map<String, dynamic>> _runForecast() async {
   final lang = Localizations.localeOf(context).languageCode;
 
   // כתובת הפרודקשן שלך ב-Render
+  Future<Map<String, dynamic>> _runForecast() async {
+  final dateStr = DateFormat('yyyy-MM-dd').format(selectedDate!);
+  final timeStr =
+      '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}';
+  final houseSystemParam = houseSystemApiValue(_houseSystem);
+  final lang = Localizations.localeOf(context).languageCode;
+
   final uri = Uri.parse('https://lottoluck-api.onrender.com/forecast');
 
   final payload = {
@@ -329,9 +336,9 @@ Future<Map<String, dynamic>> _runForecast() async {
       .timeout(const Duration(seconds: 60));
 
   if (resp.statusCode >= 200 && resp.statusCode < 300) {
-    return jsonDecode(utf8.decode(resp.bodyBytes)) as Map<String, dynamic>;
+    return jsonDecode(resp.body) as Map<String, dynamic>;
   } else {
-    throw Exception('HTTP ${resp.statusCode} from $uri\n${utf8.decode(resp.bodyBytes)}');
+    throw Exception('HTTP ${resp.statusCode} from $uri\n${resp.body}');
   }
 }
 
