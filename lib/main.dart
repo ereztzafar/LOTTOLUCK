@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -6,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
-import 'package:http/http.dart' as http;
 
 import 'models/city.dart';
 import 'package:lottoluck/widgets/city_search_widget.dart';
@@ -298,68 +296,43 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     setState(() => _tzId = guess);
   }
 
-  Future<Map<String, dynamic>> _runForecast() async {
-    final dateStr = DateFormat('yyyy-MM-dd').format(selectedDate!);
-    final timeStr =
-        '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}';
-    final houseSystemParam = houseSystemApiValue(_houseSystem);
-    final lang = Localizations.localeOf(context).languageCode;
 
-    if (Platform.isAndroid || Platform.isIOS) {
-      final host = Platform.isAndroid ? '10.0.2.2' : '127.0.0.1';
-      final uri = Uri.parse('http://$host:8000/forecast');
-      final payload = {
-        'date': dateStr,
-        'time': timeStr,
-        'city': selectedCity!.name,
-        'lat': selectedCity!.latitude.toString(),
-        'lon': selectedCity!.longitude.toString(),
-        'lang': lang,
-        'tz': _tzId,
-        'house_system': houseSystemParam,
-      };
+Future<Map<String, dynamic>> _runForecast() async {
+  final dateStr = DateFormat('yyyy-MM-dd').format(selectedDate!);
+  final timeStr =
+      '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}';
+  final houseSystemParam = houseSystemApiValue(_houseSystem);
+  final lang = Localizations.localeOf(context).languageCode;
 
-      final resp = await http
-          .post(
-            uri,
-            headers: const {'Content-Type': 'application/json; charset=utf-8'},
-            body: jsonEncode(payload),
-          )
-          .timeout(const Duration(seconds: 60));
+  // כתובת הפרודקשן שלך ב-Render
+  final uri = Uri.parse('https://lottoluck-api.onrender.com/forecast');
 
-      if (resp.statusCode >= 200 && resp.statusCode < 300) {
-        return jsonDecode(utf8.decode(resp.bodyBytes)) as Map<String, dynamic>;
-      } else {
-        throw Exception(
-            'HTTP ${resp.statusCode} from $uri\n${utf8.decode(resp.bodyBytes)}');
-      }
-    }
+  final payload = {
+    'date': dateStr,
+    'time': timeStr,
+    'city': selectedCity!.name,
+    'lat': selectedCity!.latitude.toString(),
+    'lon': selectedCity!.longitude.toString(),
+    'lang': lang,
+    'tz': _tzId,
+    'house_system': houseSystemParam,
+  };
 
-    final result = await Process.run(
-      'python',
-      [
-        'python/astrology_forecast.py',
-        dateStr,
-        timeStr,
-        selectedCity!.name,
-        selectedCity!.latitude.toString(),
-        selectedCity!.longitude.toString(),
-        lang,
-        _tzId,
-        houseSystemParam,
-      ],
-      stdoutEncoding: utf8,
-      stderrEncoding: utf8,
-      environment: const {'PYTHONIOENCODING': 'utf-8'},
-      runInShell: true,
-    );
+  final resp = await http
+      .post(
+        uri,
+        headers: const {'Content-Type': 'application/json; charset=utf-8'},
+        body: jsonEncode(payload),
+      )
+      .timeout(const Duration(seconds: 60));
 
-    if (result.exitCode == 0) {
-      return jsonDecode(result.stdout) as Map<String, dynamic>;
-    } else {
-      throw Exception(result.stderr);
-    }
+  if (resp.statusCode >= 200 && resp.statusCode < 300) {
+    return jsonDecode(utf8.decode(resp.bodyBytes)) as Map<String, dynamic>;
+  } else {
+    throw Exception('HTTP ${resp.statusCode} from $uri\n${utf8.decode(resp.bodyBytes)}');
   }
+}
+
 
   Future<void> _submit() async {
     if (!isFormComplete) return;
