@@ -1,13 +1,14 @@
 // lib/screens/pro_screen.dart
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb; // ל-kIsWeb
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/widgets.dart' as widgets;
 import 'package:http/http.dart' as http;
 import 'package:timezone/timezone.dart' as tz;
 
-// NEW: שימוש בלקוח ה־API עם הדומיין בענן
+// שימוש בלקוח ה־API עם הדומיין בענן
 import 'package:lottoluck/services/api_client.dart';
 
 /// PRO - 3 ימים + תקציר לכל יום + "15/100 יום קדימה" (אותה לוגיקת ניקוד כמו בפייתון)
@@ -703,6 +704,7 @@ class _DayBundle {
     _LuckyBlock? best;
     for (final b in blocks) {
       if (best == null || b.count > best.count) best = b;
+      // אם רוצים עדיפות גם לציון — אפשר להוסיף כאן לוגיקה
     }
 
     return _DayBundle(
