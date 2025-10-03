@@ -2,6 +2,7 @@ flask
 flask-cors
 gunicorn
 flatlib
-pytz
+pyswisseph
 requests
+
 
