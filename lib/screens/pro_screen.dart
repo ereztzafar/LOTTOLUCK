@@ -1,13 +1,15 @@
 // lib/screens/pro_screen.dart
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter/widgets.dart' as widgets;
+import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:timezone/timezone.dart' as tz;
 
+// שימוש בלקוח ה־API עם הדומיין בענן
 import 'package:lottoluck/services/api_client.dart';
 
+/// PRO - 3 ימים + תקציר לכל יום + "15/100 יום קדימה"
 class ProForecastScreen extends StatefulWidget {
   final String birthDate; // yyyy-MM-dd
   final String birthTime; // HH:mm
@@ -31,21 +33,22 @@ class ProForecastScreen extends StatefulWidget {
 }
 
 class _ProForecastScreenState extends State<ProForecastScreen> {
+  // ---- מצב 3 ימים ----
   bool _loading = true;
   String? _error;
   final List<_DayBundle> _days = [];
 
+  // ---- מצב Tail קדימה ----
   bool _tailLoading = true;
   List<_TailHit> _tail95 = [];
   List<_TailHit> _tail90 = [];
 
-  static const int _DEDUPE_MIN = 0;
-  static const int _MAX_PER_DAY = 999999;
-  static const double _SCORE_95 = 9.75;
-  static const double _SCORE_90 = 9.0;
+  // === תצורה ===
+  static const double _SCORE_95 = 9.75; // סף 95-100 (כמו בפייתון)
+  static const double _SCORE_90 = 9.0;  // סף 90-95 (כמו בפייתון)
   static const int _MAX_URANUS_PER_MIN = 5;
 
-  // 15 ימים קדימה
+  // כמה ימים קדימה ל-tail (עודכן ל-15)
   static const int _DAYS_AHEAD = 15;
 
   @override
@@ -55,6 +58,11 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
     _buildTailAhead();
   }
 
+  // =========================
+  //       עזרי זמן/אזור זמן
+  // =========================
+
+  /// offset לשרת לפי תאריך (נדרש על ידי ה-API). אם IANA - מחשב ב-12:00.
   String _tzOffsetForDate(String ymd) {
     final tzId = widget.tz.trim();
     final m1 = RegExp(r'^([+-])(\d{2}):?(\d{2})$').firstMatch(tzId);
@@ -70,7 +78,7 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
         final h = off.inHours.abs().toString().padLeft(2, '0');
         final m = (off.inMinutes.abs() % 60).toString().padLeft(2, '0');
         return '$sign$h:$m';
-      } catch (_) {}
+      } catch (_) {/* fallback למטה */}
     }
     final dev = DateTime.now().timeZoneOffset;
     final sign = dev.isNegative ? '-' : '+';
@@ -79,13 +87,14 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
     return '$sign$h:$m';
   }
 
+  /// עכשיו באזור הזמן של המשתמש (IANA מדויק כולל DST).
   DateTime _nowInChosenTz() {
     final tzId = widget.tz.trim();
     if (tzId.contains('/')) {
       try {
         final loc = tz.getLocation(tzId);
         return tz.TZDateTime.now(loc);
-      } catch (_) {}
+      } catch (_) {/* המשך */}
     }
     final m = RegExp(r'^([+-])(\d{2}):?(\d{2})$').firstMatch(tzId);
     if (m != null) {
@@ -97,16 +106,17 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
     return DateTime.now();
   }
 
+  /// המרה מדויקת של זמן מקומי (לפי IANA או offset) ל-UTC עבור שעה ספציפית.
   DateTime _localToUtc(String ymd, String hhmm) {
-    final d = ymd.split('-').map(int.parse).toList();
-    final t = hhmm.split(':').map(int.parse).toList();
+    final d = ymd.split('-').map(int.parse).toList(); // [yyyy,mm,dd]
+    final t = hhmm.split(':').map(int.parse).toList(); // [HH,mm]
 
     if (widget.tz.contains('/')) {
       try {
         final loc = tz.getLocation(widget.tz);
         final local = tz.TZDateTime(loc, d[0], d[1], d[2], t[0], t[1]);
         return local.toUtc();
-      } catch (_) {}
+      } catch (_) {/* fallback */}
     }
 
     final m = RegExp(r'^([+-])(\d{2}):?(\d{2})$').firstMatch(widget.tz.trim());
@@ -131,12 +141,17 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
         final loc = tz.getLocation(widget.tz);
         final start = tz.TZDateTime(loc, nowTz.year, nowTz.month, nowTz.day);
         return List.generate(3, (i) => fmt.format(start.add(Duration(days: i))));
-      } catch (_) {}
+      } catch (_) {/* fallback */}
     }
     final start = DateTime(nowTz.year, nowTz.month, nowTz.day);
     return List.generate(3, (i) => fmt.format(start.add(Duration(days: i))));
   }
 
+  // =========================
+  //           API
+  // =========================
+
+  /// עוזר: לוקח lucky_hours גם מהטופ-לבל וגם מ-days[0] אם צריך
   List _extractLuckyBlocks(Map<String, dynamic> api) {
     final top = (api['lucky_hours'] as List?) ?? const [];
     if (top.isNotEmpty) return top;
@@ -168,7 +183,7 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
       'lang': lang,
     };
 
-    // תמיד דרך השרת בענן (גם בווב וגם במובייל)
+    // תמיד דרך השרת בענן – זה עובד בכל פלטפורמה (Android/iOS/Web/Desktop)
     final resp = await http
         .post(
           Api.pro(),
@@ -205,6 +220,7 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
         );
       }));
 
+      // מרכיבים DayBundle + מחשבים tail יומי לכל יום (ללא איחוד)
       final nowUtc = _nowInChosenTz().toUtc();
       final bundles = <_DayBundle>[];
       for (int i = 0; i < results.length; i++) {
@@ -241,9 +257,13 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
     }
   }
 
+  // =========================
+  //   ניקוד היבטים (fallback בלבד)
+  // =========================
   static const Set<String> _benefics = {'VENUS', 'JUPITER', 'FORTUNE'};
 
   String _canonPlanet(String s) {
+    // הסר סוגריים ותגיות (Natal/Transit/Tr./(n)/(tr) וכו')
     s = s.replaceAll(RegExp(r'\(.*?\)|\[.*?\]'), '');
     s = s.replaceAll(RegExp(r'\b(natal|transit|tr\.?|(n|t)r)\b', caseSensitive: false), '');
     s = s.trim();
@@ -254,16 +274,17 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
     if (x.contains('moon') || x.contains('ירח') || x.contains('🌙')) return 'MOON';
     if (x.contains('pluto') || x.contains('פלוטו') || x.contains('♇')) return 'PLUTO';
     if (x.contains('uranus') || x.contains('אוראנוס') || x.contains('אורנוס') || x.contains('♅')) return 'URANUS';
-    if (x.contains('fortune') || x.contains('pof') || x.contains('מזל') || x.contains('🎯')) return 'FORTUNE';
+    if (x.contains('fortune') || x.contains('pof') || x.contains('מזל') || x.contains('פורצ׳ון') || x.contains('טבעת המזל') || x.contains('🎯')) return 'FORTUNE';
     if (x.contains('sun') || x.contains('שמש') || x.contains('☉') || x.contains('☀')) return 'SUN';
-    if (x.contains('mercury') || x.contains('מרקורי') || x.contains('☿')) return 'MERCURY';
-    if (x.contains('saturn') || x.contains('סטורן') || x.contains('♄')) return 'SATURN';
+    if (x.contains('mercury') || x.contains('מרקורי') || x.contains('כוכב חמה') || x.contains('☿')) return 'MERCURY';
+    if (x.contains('saturn') || x.contains('סטורן') || x.contains('שבתאי') || x.contains('♄')) return 'SATURN';
     if (x.contains('neptune') || x.contains('נפטון') || x.contains('♆')) return 'NEPTUNE';
     if (x.contains('mars') || x.contains('מאדים') || x.contains('♂')) return 'MARS';
     return s.toUpperCase();
   }
 
   int _parseAngleFromLine(String line) {
+    // תומך: 120°, 120º, 120 deg, “120 מעלות”, וגם מילות היבט
     final mNum = RegExp(r'(\d{1,3})\s*(?:°|º|deg|degrees|מעלות)').firstMatch(line);
     if (mNum != null) {
       final v = int.tryParse(mNum.group(1)!);
@@ -324,6 +345,7 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
     return _ScoreInfo(score: sum, keyTrine: keyTrine);
   }
 
+  /// ממיין כרונולוגית (ללא מיזוג/Top-N)
   List<_ScoredBlock> _dedupeAndTop(List<_ScoredBlock> list, String date) {
     if (list.isEmpty) return [];
     final withDt = list
@@ -333,6 +355,9 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
     return withDt.map((e) => e.block).toList();
   }
 
+  // =========================
+  //   Tail יומי לשלושת הימים
+  // =========================
   (List<_TailHit>, List<_TailHit>) _extractDayTailForOneDay({
     required List apiLuckyBlocks,
     required String date,
@@ -344,12 +369,15 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
       if (raw is! Map) continue;
       final m = raw.cast<String, dynamic>();
 
+      // תמיכה גם ב-'from' וגם ב-'שעה'
       final from = (m['from'] ?? m['שעה'] ?? '').toString();
       if (from.isEmpty) continue;
 
+      // past times filtering (רק ליום הנוכחי)
       final dtUtc = _localToUtc(date, from);
       if (isToday && !dtUtc.isAfter(nowUtc)) continue;
 
+      // ניקוד מספרי אם יש
       double numScore = -1;
       if (m['score_sum'] is num) {
         numScore = (m['score_sum'] as num).toDouble();
@@ -357,10 +385,12 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
         numScore = (m['score_num'] as num).toDouble();
       }
 
+      // תמיד נחשב גם fallback מהטקסט
       final aspects = (m['aspects'] as List? ?? const []).map((x) => x.toString()).toList();
       final info = _scoreFromAspectLines(aspects);
       final textScore = info.score;
 
+      // ניקח את הגבוה
       final score = (numScore >= 0) ? (numScore > textScore ? numScore : textScore) : textScore;
 
       if (score >= _SCORE_90) {
@@ -381,6 +411,9 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
     return (hits95, hits90);
   }
 
+  // =========================
+  //   Tail קדימה — ללא איחוד/הגבלה
+  // =========================
   Future<void> _buildTailAhead() async {
     setState(() => _tailLoading = true);
     try {
@@ -394,7 +427,7 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
             final loc = tz.getLocation(widget.tz);
             final start = tz.TZDateTime(loc, d.year, d.month, d.day);
             return fmt.format(start);
-          } catch (_) {}
+          } catch (_) {/* fallback */}
         }
         return fmt.format(DateTime(d.year, d.month, d.day));
       });
@@ -429,7 +462,7 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
           if (from.isEmpty) continue;
 
           final dtUtc = _localToUtc(date, from);
-          if (i == 0 && !dtUtc.isAfter(nowUtc)) continue;
+          if (i == 0 && !dtUtc.isAfter(nowUtc)) continue; // דילוג על עבר היום
 
           double numScore = -1;
           if (b['score_sum'] is num) {
@@ -459,6 +492,7 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
         }
       }
 
+      // מיון כרונולוגי מלא לפי UTC מדויק
       int cmp(_TailHit a, _TailHit b) =>
           _localToUtc(a.date, a.time).compareTo(_localToUtc(b.date, b.time));
 
@@ -481,6 +515,9 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
     }
   }
 
+  // =========================
+  //           UI
+  // =========================
   @override
   Widget build(BuildContext context) {
     final header = Padding(
@@ -515,6 +552,7 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        // עודכן ל-15 ימים קדימה
         title: const Text('🎟️ PRO — 3 ימים + 15/100 יום'),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
@@ -547,7 +585,7 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
                     )
                   : ListView.builder(
                       padding: const EdgeInsets.only(bottom: 24),
-                      itemCount: _days.length + 2,
+                      itemCount: _days.length + 2, // כותרת + 3 ימים + Tail
                       itemBuilder: (ctx, i) {
                         if (i == 0) {
                           return Column(
@@ -568,14 +606,16 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
   }
 }
 
-// ===== מודלים/כרטיסי יום וה-Tail (ללא שינוי משמעותי) =====
+// =========================
+//   מודלים/כרטיסי יום
+// =========================
 class _DayBundle {
-  final String date;
-  final List<String> retroPlanets;
-  final List<_LuckyBlock> blocks;
-  final String? bestHour;
-  final List<_TailHit> dayTail95;
-  final List<_TailHit> dayTail90;
+  final String date;               // yyyy-MM-dd
+  final List<String> retroPlanets; // ["♄ Saturn ℞", ...]
+  final List<_LuckyBlock> blocks;  // רשימת חלונות
+  final String? bestHour;          // ההמלצה (שעת שיא לפי כמות היבטים)
+  final List<_TailHit> dayTail95;  // תקציר יומי - 95-100
+  final List<_TailHit> dayTail90;  // תקציר יומי - 90-95
 
   _DayBundle({
     required this.date,
@@ -615,7 +655,7 @@ class _DayBundle {
     for (final e in rawBlocks) {
       final b = (e as Map).cast<String, dynamic>();
       blocks.add(_LuckyBlock(
-        from: ((b['from'] ?? b['שעה']) ?? '').toString(),
+        from: ((b['from'] ?? b['שעה']) ?? '').toString(), // תמיכה גם ב-'שעה'
         to: (b['to'] ?? '').toString(),
         scoreLabel: (b['score'] ?? '').toString(),
         aspects: (b['aspects'] as List? ?? const []).map((x) => x.toString()).toList(),
@@ -642,7 +682,7 @@ class _DayBundle {
 class _LuckyBlock {
   final String from;
   final String to;
-  final String scoreLabel;
+  final String scoreLabel; // לדוגמה: "🟢 70-84%"
   final int count;
   final List<String> aspects;
 
@@ -678,34 +718,41 @@ class _DayCard extends StatelessWidget {
             Text(dayTitle,
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
             const SizedBox(height: 6),
+
             if (bundle.retroPlanets.isNotEmpty) ...[
               const Text('🔁 כוכבים בנסיגה:', style: TextStyle(color: Colors.white70)),
               const SizedBox(height: 4),
               Text(bundle.retroPlanets.join(', '), style: const TextStyle(color: Colors.white)),
               const SizedBox(height: 10),
             ],
+
             if (bundle.blocks.isEmpty)
               const Text('❌ אין שעות מזל לוטו ביום זה.', style: TextStyle(color: Colors.white70))
             else
               ...bundle.blocks.map((b) => _blockWidget(b)),
+
             if (bundle.bestHour != null) ...[
               const SizedBox(height: 8),
               Text('🟢 המלצה: למלא לוטו, חישגד או צ׳אנס סביב ${bundle.bestHour!}',
                   style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.w600)),
             ],
+
+            // === תקציר יומי כמו בפייתון ===
             const SizedBox(height: 10),
             const Divider(color: Colors.white24),
             const SizedBox(height: 6),
             const Text('תקציר חזק ליום זה (ניקוד):', style: TextStyle(color: Colors.white70)),
             const SizedBox(height: 6),
             const Text('✅ 95%-100%:', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 6),
             if (bundle.dayTail95.isEmpty)
               const Text('(אין)', style: TextStyle(color: Colors.white70))
             else
               ...bundle.dayTail95.map((h) => Text('• ${h.time} - 95%-100%',
                   style: const TextStyle(color: Colors.white))),
             const SizedBox(height: 6),
-            const Text('⬆️ 90%-95%:', style: TextStyle(color: Colors.amבר, fontWeight: FontWeight.w600)),
+            const Text('⬆️ 90%-95%:', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 6),
             if (bundle.dayTail90.isEmpty)
               const Text('(אין)', style: TextStyle(color: Colors.white70))
             else
@@ -732,6 +779,9 @@ class _DayCard extends StatelessWidget {
   }
 }
 
+// =========================
+//     Tail קדימה – UI
+// =========================
 class _TailHit {
   final String date; // yyyy-MM-dd
   final String time; // HH:mm
@@ -795,6 +845,9 @@ class _TailCard extends StatelessWidget {
   }
 }
 
+// =========================
+//      טיפוסים קטנים
+// =========================
 class _ScoreInfo {
   final double score;
   final bool keyTrine;
@@ -802,8 +855,8 @@ class _ScoreInfo {
 }
 
 class _ScoredBlock {
-  final String time;
-  final double score;
+  final String time;   // HH:mm
+  final double score;  // סכום משוקלל
   _ScoredBlock({required this.time, required this.score});
 }
 
