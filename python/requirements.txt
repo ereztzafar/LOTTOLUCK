@@ -4,5 +4,6 @@ gunicorn
 flatlib
 pyswisseph
 requests
+pytz
 
 
