@@ -154,7 +154,7 @@ class LottoLuckApp extends StatelessWidget {
         Locale('es'),
         Locale('pt'),
       ],
-      home: const RegistrationScreen(),
+      home: const SplashGate(),
     );
   }
 }
