@@ -24,7 +24,7 @@ import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'services/asc_mc.dart';
 import 'widgets/astro_wheel.dart';
 
-/// עזר: האם אנו רצים על מובייל (אנדרואיד או אייפון) - תקין גם בווב ודסקטופ
+/// האם אנו רצים על מובייל (אנדרואיד/אייפון) — עובד גם בווב/דסקטופ
 bool get kIsMobile =>
     !kIsWeb &&
     (defaultTargetPlatform == TargetPlatform.android ||
@@ -42,7 +42,6 @@ String houseSystemApiValue(HouseSystem hs) {
   }
 }
 
-/// תווית ידידותית לשיטת בתים - בלי תלות במפתחות l10n שאולי חסרים
 String houseSystemLabel(BuildContext context, HouseSystem hs) {
   final lang = Localizations.localeOf(context).languageCode.toLowerCase();
 
@@ -159,6 +158,10 @@ class LottoLuckApp extends StatelessWidget {
         Locale('pt'),
       ],
       home: const SplashGate(),
+      // ✅ מאפשר ל-SplashGate לנווט למסך ההרשמה בלי תלות ישירה במחלקה
+      routes: {
+        '/register': (_) => const RegistrationScreen(),
+      },
     );
   }
 }
@@ -181,13 +184,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   String _tzId = 'Asia/Jerusalem';
   HouseSystem _houseSystem = HouseSystem.placidus;
 
-  bool _lockCoreFields = false;       // נועל שם, עיר, תאריך, שעה, אזור זמן אם נטען פרופיל
-  UserProfile? _savedProfile;         // הפרופיל השמור (אם קיים)
-
-  bool get _isMobile =>
-      !kIsWeb &&
-      (defaultTargetPlatform == TargetPlatform.android ||
-          defaultTargetPlatform == TargetPlatform.iOS);
+  bool _lockCoreFields = false; // נועל שם/עיר/תאריך/שעה/אזור זמן אם נטען פרופיל
+  UserProfile? _savedProfile;
 
   static const List<String> _ianaChoices = <String>[
     'UTC',
@@ -246,7 +244,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         longitude: p.lon,
       );
 
-      // תאריך/שעה
       try {
         selectedDate = DateFormat('yyyy-MM-dd').parse(p.birthDate);
         dateTextCtrl.text = p.birthDate;
@@ -263,7 +260,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
       _tzId = p.tz;
 
-      // ביתים
       _houseSystem = () {
         switch (p.houseSystem) {
           case 'whole_sign':
@@ -275,8 +271,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         }
       }();
 
-      // נועל שדות הליבה לקריאה בלבד
-      _lockCoreFields = true;
+      _lockCoreFields = true; // נעילה
     });
   }
 
@@ -292,7 +287,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   Future<void> _pickDate() async {
-    if (_lockCoreFields) return; // נעול
+    if (_lockCoreFields) return;
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
@@ -310,7 +305,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   Future<void> _pickTime() async {
-    if (_lockCoreFields) return; // נעול
+    if (_lockCoreFields) return;
     final picked = await showTimePicker(
       context: context,
       initialTime: const TimeOfDay(hour: 6, minute: 0),
@@ -329,21 +324,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   void _autoPickTzForCity(City city) {
-    if (_lockCoreFields) return; // נעול
+    if (_lockCoreFields) return;
     final country = (city.country ?? '').toLowerCase();
     String guess = _tzId;
 
-    if (country.contains('israel') ||
-        country.contains('il') ||
-        country.contains('ישראל')) {
+    if (country.contains('israel') || country.contains('il') || country.contains('ישראל')) {
       guess = 'Asia/Jerusalem';
-    } else if (country.contains('united states') ||
-        country.contains('usa') ||
-        country.contains('us')) {
+    } else if (country.contains('united states') || country.contains('usa') || country.contains('us')) {
       guess = 'America/New_York';
-    } else if (country.contains('united kingdom') ||
-        country.contains('uk') ||
-        country.contains('england')) {
+    } else if (country.contains('united kingdom') || country.contains('uk') || country.contains('england')) {
       guess = 'Europe/London';
     } else if (country.contains('france')) {
       guess = 'Europe/Paris';
@@ -424,7 +413,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     try {
       final data = await _runForecast();
 
-      // ✅ שמירת פרופיל מקומית אחרי מילוי פעם ראשונה (או עדכון שיטת בתים)
+      // שמירת פרופיל לאחר מילוי/עדכון
       final birthDateStr = DateFormat('yyyy-MM-dd').format(selectedDate!);
       final birthTimeStr =
           '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}';
@@ -541,7 +530,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     ],
                     const SizedBox(height: 24),
 
-                    // Name (נעילה באמצעות enabled: false)
+                    // Name
                     TextField(
                       controller: nameController,
                       focusNode: nameFocus,
@@ -558,7 +547,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // City (אם נעול – מציגים טקסט קריא בלבד)
+                    // City
                     if (_lockCoreFields && selectedCity != null) ...[
                       Container(
                         width: double.infinity,
@@ -623,7 +612,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     ],
                     const SizedBox(height: 16),
 
-                    // Date (נעילה: לא נפתח picker)
+                    // Date
                     TextFormField(
                       controller: dateTextCtrl,
                       focusNode: dateFocusNode,
@@ -644,7 +633,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     ),
                     const SizedBox(height: 10),
 
-                    // Time (נעילה: לא נפתח picker)
+                    // Time
                     TextFormField(
                       controller: timeTextCtrl,
                       focusNode: timeFocusNode,
@@ -661,7 +650,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
                     const SizedBox(height: 12),
 
-                    // Time Zone (IANA) picker (נעילה: Dropdown מושבת)
+                    // Time Zone
                     InputDecorator(
                       decoration: InputDecoration(
                         labelText: l.time_zone_label,
@@ -1331,7 +1320,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
                         TextSpan(text: aspect, style: TextStyle(color: _aspectColor(aspect), fontWeight: FontWeight.bold)),
                         TextSpan(text: ' ($orb°) - ', style: const TextStyle(color: Colors.white70)),
                         ..._nameWithR(nPlanet, nRetro, Colors.amber),
-                        const TextSpan(text: ' (', style: const TextStyle(color: Colors.white70)),
+                        const TextSpan(text: ' (', style: TextStyle(color: Colors.white70)),
                         TextSpan(text: nPos, style: const TextStyle(color: Colors.white70)),
                         const TextSpan(text: ')', style: const TextStyle(color: Colors.white70)),
                       ],
