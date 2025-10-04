@@ -2,7 +2,7 @@
 import 'dart:math' as math;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
+import 'splash_gate.dart
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
