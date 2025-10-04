@@ -26,7 +26,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
@@ -45,8 +45,15 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  web: true
   image_path: assets/app_icon.png
-  adaptive_icon_background: "#5B2C98"  # רקע לאדפטיב אנדרואיד (אפשר לשנות)
-  # adaptive_icon_foreground: assets/icon_fg.png      # אופציונלי
-  # adaptive_icon_monochrome: assets/icon_mono.png    # אופציונלי לאנדרואיד 13+
+  adaptive_icon_background: "#5B2C98"   # רקע לאדפטיב באנדרואיד
+  remove_alpha_ios: true                # מומלץ ל-iOS
+  min_sdk_android: 21                   # ברירת מחדל טובה
+  web:
+    generate: true
+    image_path: assets/app_icon.png
+    background_color: "#5B2C98"
+    theme_color: "#5B2C98"
+  # אופציונלי:
+  # adaptive_icon_foreground: assets/icon_fg.png
+  # adaptive_icon_monochrome: assets/icon_mono.png
