@@ -15,43 +15,43 @@ class PurchaseService with ChangeNotifier {
   StreamSubscription<List<PurchaseDetails>>? _sub;
 
   bool _available = false;
+  bool get isStoreAvailable => _available;
+
   bool _isPro = false;
   bool get isPro => _isPro;
+
+  /// API נוח לשימוש בספלש/מקומות אחרים
+  Future<bool> isProActive() async => _isPro;
 
   ProductDetails? _proDetails;
   ProductDetails? get proDetails => _proDetails;
 
-  /// שמות מפתחות בלוקאל סטורג'
+  /// מפתח לשמירת זכאות באופן מקומי
   static const _kIsProKey = 'is_pro_entitlement';
 
+  /// קריאה ראשונית: טוען סטטוס, בודק חנות, מאזין לעדכוני רכישה ומושך מוצר
   Future<void> init() async {
-    // קרא סטטוס שמור
+    // 1) קרא זכאות שמורה (אם הייתה רכישה בעבר)
     final prefs = await SharedPreferences.getInstance();
     _isPro = prefs.getBool(_kIsProKey) ?? false;
 
-    // בדיקת זמינות החנות (Play)
+    // 2) בדיקת זמינות החנות
     _available = await _iap.isAvailable();
 
-    // מאזין לעדכוני רכישה
-    _sub?.cancel();
-    _sub = _iap.purchaseStream.listen(_onPurchaseUpdate, onDone: () {
-      _sub?.cancel();
-    }, onError: (Object e, StackTrace s) {
-      // אפשר להוסיף לוג
-    });
+    // 3) האזן לזרם רכישות
+    await _sub?.cancel();
+    _sub = _iap.purchaseStream.listen(
+      _onPurchaseUpdate,
+      onDone: () => _sub?.cancel(),
+      onError: (Object e, StackTrace s) {
+        // אפשר להוסיף לוג/דיווח
+      },
+    );
 
-    // משוך פרטי מוצר
+    // 4) משוך פרטי מוצר
     if (_available) {
-      final resp = await _iap.queryProductDetails({kProProductId});
-      if (resp.error == null && resp.productDetails.isNotEmpty) {
-        _proDetails = resp.productDetails.first;
-      }
-    }
-
-    // אם כבר מסומן PRO לוקאלי, נוודא/נשחזר ברקע (לא חובה לגרסה ראשונית)
-    // restore() יגרום ל-emission מחדש ב-purchaseStream אם יש רכישה קיימת
-    if (_available) {
-      // אפשר להריץ ברקע; כאן מריצים סינכרונית כדי לשמור על פשטות
+      await refreshProducts();
+      // 5) שחזור רכישות (כדי להעניק זכאות במכשיר חדש/התקנה מחדש)
       await restorePurchases();
     }
 
@@ -62,48 +62,72 @@ class PurchaseService with ChangeNotifier {
     await _sub?.cancel();
   }
 
+  /// מושך פרטי מוצר מהחנות (מחיר, מטבע וכו')
+  Future<void> refreshProducts() async {
+    final resp = await _iap.queryProductDetails({kProProductId});
+    if (resp.error == null && resp.productDetails.isNotEmpty) {
+      _proDetails = resp.productDetails.first;
+      notifyListeners();
+    }
+  }
+
+  /// פתיחת חלון רכישה של המוצר
   Future<void> buyPro() async {
-    if (!_available || _proDetails == null) {
-      throw Exception('Store not available or product not loaded');
+    if (!_available) {
+      throw Exception('החנות אינה זמינה במכשיר זה כרגע.');
+    }
+    if (_proDetails == null) {
+      await refreshProducts();
+      if (_proDetails == null) {
+        throw Exception('פרטי המוצר לא נטענו מהחנות.');
+      }
     }
     final purchaseParam = PurchaseParam(productDetails: _proDetails!);
     await _iap.buyNonConsumable(purchaseParam: purchaseParam);
   }
 
+  /// שחזור רכישות (למשתמש שהחליף מכשיר/התקין מחדש)
   Future<void> restorePurchases() async {
     if (!_available) return;
-    // החל מ-billing v5, אין queryPastPurchases יש restorePurchases()
     await _iap.restorePurchases();
   }
 
+  /// מאזין לעדכוני הרכישות מהחנות
   Future<void> _onPurchaseUpdate(List<PurchaseDetails> purchases) async {
     for (final p in purchases) {
       switch (p.status) {
         case PurchaseStatus.purchased:
         case PurchaseStatus.restored:
-          // נקודת אימות (ב-MVP מאשרים מקומית; לפרודקשן מומלץ אימות שרת)
+          // ⚠️ לפרודקשן מומלץ אימות שרת–ל–שרת כאן.
           await _entitlePro();
-          // יש להשלים את הרכישה כדי לסגור את ה-transaction
           if (p.pendingCompletePurchase) {
             await _iap.completePurchase(p);
           }
           break;
 
         case PurchaseStatus.pending:
-          // אפשר להציג ספינר אם רוצים
+          // אפשר להציג ספינר/מצב ממתין ב-UI
           break;
 
         case PurchaseStatus.error:
-          // לוג/טוסט למשתמש
+          // אפשר להראות שגיאה למשתמש (SnackBar/דיאלוג) ולרשום לוג
+          if (p.pendingCompletePurchase) {
+            // לרוב אין צורך להשלים, אבל אם התקבל דגל – נסגור את הטרנזאקציה
+            await _iap.completePurchase(p);
+          }
           break;
 
         case PurchaseStatus.canceled:
-          // לא לעשות כלום
+          // המשתמש ביטל – אין פעולה נוספת
+          if (p.pendingCompletePurchase) {
+            await _iap.completePurchase(p);
+          }
           break;
       }
     }
   }
 
+  /// הענקת זכאות PRO ושמירה מקומית
   Future<void> _entitlePro() async {
     if (_isPro) return;
     _isPro = true;
@@ -112,7 +136,7 @@ class PurchaseService with ChangeNotifier {
     notifyListeners();
   }
 
-  /// אופציונלי: ניקוי זכאות (לדיבוג בלבד)
+  /// אופציונלי לדיבוג: מחיקת הזכאות המקומית
   Future<void> debugRevoke() async {
     _isPro = false;
     final prefs = await SharedPreferences.getInstance();
