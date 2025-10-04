@@ -2,12 +2,16 @@
 import 'dart:math' as math;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'splash_gate.dart
+
+import 'splash_gate.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
+
+import 'models/user_profile.dart';
+import 'services/profile_store.dart';
 
 import 'models/city.dart';
 import 'package:lottoluck/widgets/city_search_widget.dart';
@@ -20,7 +24,7 @@ import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'services/asc_mc.dart';
 import 'widgets/astro_wheel.dart';
 
-/// עזר: האם אנו רצים על מובייל (אנדרואיד/אייפון) — תקין גם ב־Web/דסקטופ
+/// עזר: האם אנו רצים על מובייל (אנדרואיד או אייפון) - תקין גם בווב ודסקטופ
 bool get kIsMobile =>
     !kIsWeb &&
     (defaultTargetPlatform == TargetPlatform.android ||
@@ -75,7 +79,7 @@ String houseSystemLabel(BuildContext context, HouseSystem hs) {
     case HouseSystem.wholeSign:
       return t(
         'Whole Sign',
-        'וֹהוֹל־סיין (מזל שלם)',
+        'וֹהוֹל-סיין (מזל שלם)',
         'البرج الكامل',
         'Целый знак',
         'Signe entier',
@@ -176,6 +180,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   String _tzId = 'Asia/Jerusalem';
   HouseSystem _houseSystem = HouseSystem.placidus;
+
+  bool _lockCoreFields = false;       // נועל שם, עיר, תאריך, שעה, אזור זמן אם נטען פרופיל
+  UserProfile? _savedProfile;         // הפרופיל השמור (אם קיים)
+
+  bool get _isMobile =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
 
   static const List<String> _ianaChoices = <String>[
     'UTC',
@@ -613,9 +625,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 /// ================= אספקטים על הגלגל =================
 
 class _AspectSegment {
-  final double fromDeg; // טרנזיט (מקור)
-  final double toDeg; // נאטלי (יעד)
-  final String label; // לא בשימוש בציור (לשימוש עתידי)
+  final double fromDeg; // טרנזיט - מקור
+  final double toDeg;   // נאטלי - יעד
+  final String label;   // לא בשימוש בציור
   final Color color;
 
   _AspectSegment({
@@ -1205,7 +1217,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
                         ..._nameWithR(nPlanet, nRetro, Colors.amber),
                         const TextSpan(text: ' (', style: TextStyle(color: Colors.white70)),
                         TextSpan(text: nPos, style: const TextStyle(color: Colors.white70)),
-                        const TextSpan(text: ')', style: const TextStyle(color: Colors.white70)),
+                        const TextSpan(text: ')', style: TextStyle(color: Colors.white70)),
                       ],
                     ),
                   ),
@@ -1333,7 +1345,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF5B2C98), Color(0xFF0D0D0D)],
+              colors: [Colors.black, Colors.deepPurple],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
