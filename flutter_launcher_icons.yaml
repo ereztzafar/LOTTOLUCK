@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-flutter_icons:
+flutter_launcher_icons:
   android: true
   ios: true
   image_path: assets/app_icon.png
@@ -9,16 +8,4 @@ flutter_icons:
     image_path: assets/app_icon.png
     background_color: "#5B2C98"
     theme_color: "#5B2C98"
-=======
-flutter_launcher_icons:
-  android: true
-  ios: true
-  web: true
-  image_path: assets/app_icon.png
-  adaptive_icon_background: "#5B2C98"
-  # אופציונלי:
-  # adaptive_icon_foreground: assets/icon_fg.png
-  # adaptive_icon_monochrome: assets/icon_mono.png
 
-
->>>>>>> 4e37a3ffa2b5d5bc5d462af5b2af844e7dabe795
