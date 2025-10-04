@@ -35,18 +35,18 @@ flutter:
     - assets/forecast.json
     - assets/worldcities.csv
     - assets/planets/
-    - assets/app_icon.png   # האיקון 1024x1024 ששמרת
+    - assets/app_icon.png   # קובץ האייקון 1024x1024
   fonts:
     - family: NotoSansSymbols2
       fonts:
         - asset: assets/fonts/NotoSansSymbols2-Regular.ttf
 
-# הגדרות יצירת אייקונים לכל הפלטפורמות
+# קונפיגורציית האייקונים לכל הפלטפורמות
 flutter_launcher_icons:
   android: true
   ios: true
   web: true
   image_path: assets/app_icon.png
-  adaptive_icon_background: "#5B2C98"  # רקע לאנדרואיד (אפשר לשנות)
-  # adaptive_icon_foreground: assets/icon_fg.png      # אופציונלי – שכבת פורגראונד מפושטת
-  # adaptive_icon_monochrome: assets/icon_mono.png    # אופציונלי – לאנדרואיד 13+
+  adaptive_icon_background: "#5B2C98"  # רקע לאדפטיב אנדרואיד (אפשר לשנות)
+  # adaptive_icon_foreground: assets/icon_fg.png      # אופציונלי
+  # adaptive_icon_monochrome: assets/icon_mono.png    # אופציונלי לאנדרואיד 13+
