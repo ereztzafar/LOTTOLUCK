@@ -26,7 +26,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: ^0.14.4
+  flutter_launcher_icons: ^0.14.4   # ← עדכני
 
 flutter:
   uses-material-design: true
@@ -35,25 +35,21 @@ flutter:
     - assets/forecast.json
     - assets/worldcities.csv
     - assets/planets/
-    - assets/app_icon.png   # קובץ האייקון 1024x1024
+    - assets/app_icon.png            # קובץ האייקון 1024x1024
   fonts:
     - family: NotoSansSymbols2
       fonts:
         - asset: assets/fonts/NotoSansSymbols2-Regular.ttf
 
-# קונפיגורציית האייקונים לכל הפלטפורמות
-flutter_launcher_icons:
+# <<< זו הקונפיגורציה שהכלי מחפש
+flutter_icons:
   android: true
   ios: true
   image_path: assets/app_icon.png
-  adaptive_icon_background: "#5B2C98"   # רקע לאדפטיב באנדרואיד
-  remove_alpha_ios: true                # מומלץ ל-iOS
-  min_sdk_android: 21                   # ברירת מחדל טובה
+  adaptive_icon_background: "#5B2C98"
+  # adaptive_icon_foreground: assets/icon_fg.png
   web:
     generate: true
     image_path: assets/app_icon.png
     background_color: "#5B2C98"
     theme_color: "#5B2C98"
-  # אופציונלי:
-  # adaptive_icon_foreground: assets/icon_fg.png
-  # adaptive_icon_monochrome: assets/icon_mono.png
