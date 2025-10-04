@@ -1,0 +1,10 @@
+flutter_icons:
+  android: true
+  ios: true
+  image_path: assets/app_icon.png
+  adaptive_icon_background: "#5B2C98"
+  web:
+    generate: true
+    image_path: assets/app_icon.png
+    background_color: "#5B2C98"
+    theme_color: "#5B2C98"
