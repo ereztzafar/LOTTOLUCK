@@ -26,8 +26,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  # שים לב: ללא הערות בסוף השורה, ללא TAB, ורק רווחים
-  flutter_launcher_icons: "0.14.4"
+  flutter_launcher_icons: 0.14.4
 
 flutter:
   uses-material-design: true
@@ -42,7 +41,7 @@ flutter:
       fonts:
         - asset: assets/fonts/NotoSansSymbols2-Regular.ttf
 
-# קונפיגורציית האייקונים (המפתח הנכון הוא flutter_icons)
+# קונפיגורציית יצירת האייקונים
 flutter_icons:
   android: true
   ios: true
