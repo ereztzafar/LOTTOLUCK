@@ -26,7 +26,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: ^0.14.4   # ← עדכני
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
@@ -35,19 +35,18 @@ flutter:
     - assets/forecast.json
     - assets/worldcities.csv
     - assets/planets/
-    - assets/app_icon.png            # קובץ האייקון 1024x1024
+    - assets/app_icon.png
   fonts:
     - family: NotoSansSymbols2
       fonts:
         - asset: assets/fonts/NotoSansSymbols2-Regular.ttf
 
-# <<< זו הקונפיגורציה שהכלי מחפש
+# קונפיגורציית האייקונים (המפתח הנכון הוא flutter_icons)
 flutter_icons:
   android: true
   ios: true
   image_path: assets/app_icon.png
   adaptive_icon_background: "#5B2C98"
-  # adaptive_icon_foreground: assets/icon_fg.png
   web:
     generate: true
     image_path: assets/app_icon.png
