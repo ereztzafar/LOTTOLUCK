@@ -26,7 +26,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: ^0.14.4
+  # שים לב: ללא הערות בסוף השורה, ללא TAB, ורק רווחים
+  flutter_launcher_icons: "0.14.4"
 
 flutter:
   uses-material-design: true
