@@ -227,6 +227,60 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       _tzId.isNotEmpty;
 
   @override
+  void initState() {
+    super.initState();
+    _loadSavedProfileIfAny();
+  }
+
+  Future<void> _loadSavedProfileIfAny() async {
+    final p = await ProfileStore.loadUserProfile();
+    if (p == null) return;
+    setState(() {
+      _savedProfile = p;
+      nameController.text = p.name;
+
+      selectedCity = City(
+        name: p.cityName,
+        country: p.country,
+        latitude: p.lat,
+        longitude: p.lon,
+      );
+
+      // תאריך/שעה
+      try {
+        selectedDate = DateFormat('yyyy-MM-dd').parse(p.birthDate);
+        dateTextCtrl.text = p.birthDate;
+      } catch (_) {}
+
+      try {
+        final parts = p.birthTime.split(':');
+        selectedTime = TimeOfDay(
+          hour: int.parse(parts[0]),
+          minute: int.parse(parts[1]),
+        );
+        timeTextCtrl.text = p.birthTime;
+      } catch (_) {}
+
+      _tzId = p.tz;
+
+      // ביתים
+      _houseSystem = () {
+        switch (p.houseSystem) {
+          case 'whole_sign':
+            return HouseSystem.wholeSign;
+          case 'equal':
+            return HouseSystem.equal;
+          default:
+            return HouseSystem.placidus;
+        }
+      }();
+
+      // נועל שדות הליבה לקריאה בלבד
+      _lockCoreFields = true;
+    });
+  }
+
+  @override
   void dispose() {
     nameController.dispose();
     dateTextCtrl.dispose();
@@ -238,6 +292,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   Future<void> _pickDate() async {
+    if (_lockCoreFields) return; // נעול
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
@@ -255,6 +310,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   Future<void> _pickTime() async {
+    if (_lockCoreFields) return; // נעול
     final picked = await showTimePicker(
       context: context,
       initialTime: const TimeOfDay(hour: 6, minute: 0),
@@ -273,6 +329,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   void _autoPickTzForCity(City city) {
+    if (_lockCoreFields) return; // נעול
     final country = (city.country ?? '').toLowerCase();
     String guess = _tzId;
 
@@ -366,12 +423,27 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
     try {
       final data = await _runForecast();
-      if (!mounted) return;
-      Navigator.of(context).pop();
 
+      // ✅ שמירת פרופיל מקומית אחרי מילוי פעם ראשונה (או עדכון שיטת בתים)
       final birthDateStr = DateFormat('yyyy-MM-dd').format(selectedDate!);
       final birthTimeStr =
           '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}';
+
+      final prof = UserProfile(
+        name: nameController.text.trim(),
+        cityName: selectedCity!.name,
+        country: selectedCity!.country ?? '',
+        lat: selectedCity!.latitude,
+        lon: selectedCity!.longitude,
+        birthDate: birthDateStr,
+        birthTime: birthTimeStr,
+        tz: _tzId,
+        houseSystem: houseSystemApiValue(_houseSystem),
+      );
+      await ProfileStore.saveUserProfile(prof);
+
+      if (!mounted) return;
+      Navigator.of(context).pop();
 
       if (kIsMobile) {
         await AdsService.showInterstitialIfNeeded(isPro: false);
@@ -460,13 +532,21 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         letterSpacing: 0.3,
                       ),
                     ),
+                    if (_lockCoreFields) ...[
+                      const SizedBox(height: 8),
+                      const Text(
+                        '🔒 הפרטים האישיים נעולים לקריאה בלבד (נטענו מפרופיל שמור).',
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                    ],
                     const SizedBox(height: 24),
 
-                    // Name
+                    // Name (נעילה באמצעות enabled: false)
                     TextField(
                       controller: nameController,
                       focusNode: nameFocus,
                       textInputAction: TextInputAction.next,
+                      enabled: !_lockCoreFields,
                       decoration: InputDecoration(
                         labelText: l.first_name_label,
                         prefixIcon: const Icon(Icons.person_outline, color: Colors.white70),
@@ -478,44 +558,77 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // City
-                    CitySearchWidget(
-                      onCitySelected: (City city) {
-                        setState(() {
-                          selectedCity = city;
-                          _autoPickTzForCity(city);
-                        });
-                      },
-                    ),
-                    if (selectedCity != null) ...[
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on_outlined,
-                              size: 18, color: Colors.amber),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              l.city_selected_template(
-                                selectedCity!.name,
-                                selectedCity!.country ?? '',
-                                selectedCity!.latitude.toStringAsFixed(3),
-                                selectedCity!.longitude.toStringAsFixed(3),
+                    // City (אם נעול – מציגים טקסט קריא בלבד)
+                    if (_lockCoreFields && selectedCity != null) ...[
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white10,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.white12),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.location_on_outlined, size: 18, color: Colors.amber),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                l.city_selected_template(
+                                  selectedCity!.name,
+                                  selectedCity!.country ?? '',
+                                  selectedCity!.latitude.toStringAsFixed(3),
+                                  selectedCity!.longitude.toStringAsFixed(3),
+                                ),
+                                style: const TextStyle(color: Colors.white70),
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              style: const TextStyle(color: Colors.white70),
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 8),
+                            const Icon(Icons.lock, size: 16, color: Colors.white38),
+                          ],
+                        ),
                       ),
+                    ] else ...[
+                      CitySearchWidget(
+                        onCitySelected: (City city) {
+                          setState(() {
+                            selectedCity = city;
+                            _autoPickTzForCity(city);
+                          });
+                        },
+                      ),
+                      if (selectedCity != null) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Icon(Icons.location_on_outlined,
+                                size: 18, color: Colors.amber),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                l.city_selected_template(
+                                  selectedCity!.name,
+                                  selectedCity!.country ?? '',
+                                  selectedCity!.latitude.toStringAsFixed(3),
+                                  selectedCity!.longitude.toStringAsFixed(3),
+                                ),
+                                style: const TextStyle(color: Colors.white70),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                     const SizedBox(height: 16),
 
-                    // Date
+                    // Date (נעילה: לא נפתח picker)
                     TextFormField(
                       controller: dateTextCtrl,
                       focusNode: dateFocusNode,
                       readOnly: true,
+                      enabled: !_lockCoreFields,
                       decoration: InputDecoration(
                         labelText: l.birth_date_label,
                         prefixIcon:
@@ -531,11 +644,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     ),
                     const SizedBox(height: 10),
 
-                    // Time
+                    // Time (נעילה: לא נפתח picker)
                     TextFormField(
                       controller: timeTextCtrl,
                       focusNode: timeFocusNode,
                       readOnly: true,
+                      enabled: !_lockCoreFields,
                       decoration: InputDecoration(
                         labelText: l.birth_time_label,
                         prefixIcon:
@@ -547,7 +661,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
                     const SizedBox(height: 12),
 
-                    // Time Zone (IANA) picker
+                    // Time Zone (IANA) picker (נעילה: Dropdown מושבת)
                     InputDecorator(
                       decoration: InputDecoration(
                         labelText: l.time_zone_label,
@@ -564,14 +678,16 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                     child: Text(z, overflow: TextOverflow.ellipsis),
                                   ))
                               .toList(),
-                          onChanged: (v) => setState(() => _tzId = v ?? _tzId),
+                          onChanged: _lockCoreFields
+                              ? null
+                              : (v) => setState(() => _tzId = v ?? _tzId),
                         ),
                       ),
                     ),
 
                     const SizedBox(height: 12),
 
-                    // House System picker
+                    // House System (ניתן לשנות תמיד)
                     InputDecorator(
                       decoration: InputDecoration(
                         labelText: l.house_system_label,
@@ -1215,9 +1331,9 @@ class _ForecastScreenState extends State<ForecastScreen> {
                         TextSpan(text: aspect, style: TextStyle(color: _aspectColor(aspect), fontWeight: FontWeight.bold)),
                         TextSpan(text: ' ($orb°) - ', style: const TextStyle(color: Colors.white70)),
                         ..._nameWithR(nPlanet, nRetro, Colors.amber),
-                        const TextSpan(text: ' (', style: TextStyle(color: Colors.white70)),
+                        const TextSpan(text: ' (', style: const TextStyle(color: Colors.white70)),
                         TextSpan(text: nPos, style: const TextStyle(color: Colors.white70)),
-                        const TextSpan(text: ')', style: TextStyle(color: Colors.white70)),
+                        const TextSpan(text: ')', style: const TextStyle(color: Colors.white70)),
                       ],
                     ),
                   ),
