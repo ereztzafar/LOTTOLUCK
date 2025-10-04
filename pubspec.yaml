@@ -1,5 +1,5 @@
 name: lottoluck
-description: אפליקציה אסטרולוגית לחישוב שעות מזל למילוי לוטו
+description: "אפליקציה אסטרולוגית לחישוב שעות מזל למילוי לוטו"
 version: 1.0.0+1
 
 environment:
@@ -26,6 +26,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
@@ -34,7 +35,18 @@ flutter:
     - assets/forecast.json
     - assets/worldcities.csv
     - assets/planets/
+    - assets/app_icon.png   # האיקון 1024x1024 ששמרת
   fonts:
     - family: NotoSansSymbols2
       fonts:
         - asset: assets/fonts/NotoSansSymbols2-Regular.ttf
+
+# הגדרות יצירת אייקונים לכל הפלטפורמות
+flutter_launcher_icons:
+  android: true
+  ios: true
+  web: true
+  image_path: assets/app_icon.png
+  adaptive_icon_background: "#5B2C98"  # רקע לאנדרואיד (אפשר לשנות)
+  # adaptive_icon_foreground: assets/icon_fg.png      # אופציונלי – שכבת פורגראונד מפושטת
+  # adaptive_icon_monochrome: assets/icon_mono.png    # אופציונלי – לאנדרואיד 13+
