@@ -10,6 +10,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
+// ✅ הוספה: כדי לשלוט על מסך הפתיחה
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+
 import 'models/user_profile.dart';
 import 'services/profile_store.dart';
 
@@ -99,13 +102,21 @@ String houseSystemLabel(BuildContext context, HouseSystem hs) {
 }
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  tzdata.initializeTimeZones();
+  // ✅ שמירה על הספלאש על המסך בזמן האתחולים
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
+  tzdata.initializeTimeZones();
   await PurchaseService.instance.init();
   if (kIsMobile) {
     await AdsService.init();
   }
+
+  // ✅ השהייה של ~5 שניות למסך פתיחה נעים
+  await Future.delayed(const Duration(seconds: 5));
+
+  // ✅ הסרת הספלאש והרצת האפליקציה
+  FlutterNativeSplash.remove();
   runApp(const LottoLuckApp());
 }
 
@@ -700,7 +711,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 28),
+                    const Sized_box(height: 28),
 
                     SizedBox(
                       width: double.infinity,
@@ -749,7 +760,7 @@ Color _aspectColor(String aspectName) {
   if (a.contains('trine') || a.contains('משולש')) return Colors.blueAccent;
   if (a.contains('opposition') || a.contains('אופוזיציה')) return Colors.orangeAccent;
   if (a.contains('sextile') || a.contains('שישית')) return Colors.tealAccent;
-  if (a.contains('conjunction') || a.contains('צמידות')) return Colors.amberAccent;
+  if (a.contains('conjunction') || a.contains('צמידות')) return Colors.amברAccent;
   return Colors.white70;
 }
 
@@ -1320,7 +1331,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
                         TextSpan(text: aspect, style: TextStyle(color: _aspectColor(aspect), fontWeight: FontWeight.bold)),
                         TextSpan(text: ' ($orb°) - ', style: const TextStyle(color: Colors.white70)),
                         ..._nameWithR(nPlanet, nRetro, Colors.amber),
-                        const TextSpan(text: ' (', style: TextStyle(color: Colors.white70)),
+                        const TextSpan(text: ' (', style: const TextStyle(color: Colors.white70)),
                         TextSpan(text: nPos, style: const TextStyle(color: Colors.white70)),
                         const TextSpan(text: ')', style: const TextStyle(color: Colors.white70)),
                       ],
