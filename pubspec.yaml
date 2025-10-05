@@ -27,8 +27,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_launcher_icons: ^0.14.4
-  flutter_native_splash: ^2.3.7
-
+  flutter_native_splash: ^2.4.0
 
 flutter:
   uses-material-design: true
@@ -47,10 +46,14 @@ flutter:
 flutter_icons:
   android: true
   ios: true
+  web: true
   image_path: assets/app_icon.png
   adaptive_icon_background: "#5B2C98"
-  web:
-    generate: true
-    image_path: assets/app_icon.png
-    background_color: "#5B2C98"
-    theme_color: "#5B2C98"
+
+# מסך פתיחה (Splash Screen)
+flutter_native_splash:
+  color: "#5B2C98"          # רקע סגול כהה
+  image: assets/app_icon.png
+  android: true
+  ios: true
+  web: true
