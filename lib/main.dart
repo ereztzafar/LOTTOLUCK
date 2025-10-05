@@ -711,7 +711,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       ),
                     ),
 
-                    const Sized_box(height: 28),
+                    const SizedBox(height: 28),
 
                     SizedBox(
                       width: double.infinity,
@@ -760,7 +760,7 @@ Color _aspectColor(String aspectName) {
   if (a.contains('trine') || a.contains('משולש')) return Colors.blueAccent;
   if (a.contains('opposition') || a.contains('אופוזיציה')) return Colors.orangeAccent;
   if (a.contains('sextile') || a.contains('שישית')) return Colors.tealAccent;
-  if (a.contains('conjunction') || a.contains('צמידות')) return Colors.amברAccent;
+  if (a.contains('conjunction') || a.contains('צמידות')) return Colors.amberAccent;
   return Colors.white70;
 }
 
