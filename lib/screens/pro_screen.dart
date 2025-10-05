@@ -543,7 +543,7 @@ class _ProForecastScreenState extends State<ProForecastScreen> {
               style: const TextStyle(color: Colors.white70)),
           const SizedBox(height: 6),
           const Text(
-            '🎯 חישוב ניקוד כמו בפייתון (אוראנוס נספר רק ב-120°, 180° לא נספר).',
+            
             style: TextStyle(color: Colors.white70),
           ),
         ],
