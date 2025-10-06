@@ -37,6 +37,7 @@ flutter:
     - assets/worldcities.csv
     - assets/planets/
     - assets/app_icon.png
+    - assets/images/lucky_balls.png   # התמונה המלאה לספלש
   fonts:
     - family: NotoSansSymbols2
       fonts:
@@ -49,9 +50,22 @@ flutter_icons:
   image_path: assets/app_icon.png
   adaptive_icon_background: "#5B2C98"
 
+# מסך פתיחה מלא מסך
 flutter_native_splash:
-  color: "#5B2C98"
-  image: assets/app_icon.png
   android: true
   ios: true
   web: true
+
+  # צבע רקע גיבוי
+  color: "#5B2C98"
+
+  # תמונת רקע שמכסה את כל המסך
+  background_image: assets/images/lucky_balls.png
+  fullscreen: true
+
+  # התאמות לאנדרואיד 12
+  android_12:
+    background_image: assets/images/lucky_balls.png
+
+  # ב־iOS מילוי מלא
+  ios_content_mode: scaleAspectFill
