@@ -38,6 +38,8 @@ flutter:
     - assets/planets/
     - assets/app_icon.png
     - assets/images/lucky_balls.png   # התמונה המלאה לספלש
+    - assets/images/app_icon.png
+    - assets/images/splash_icon.png
   fonts:
     - family: NotoSansSymbols2
       fonts:
