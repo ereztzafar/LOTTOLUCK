@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Android Release APK
 
 on:
   push:
@@ -12,23 +12,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # שלב 1: הורדת קוד מהמאגר
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
+      # שלב 2: התקנת Flutter
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
           flutter-version: '3.24.0'
+          channel: stable
 
+      # שלב 3: התקנת כל התלויות
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build APK
+      # שלב 4: בניית קובץ ה־APK
+      - name: Build release APK
         run: flutter build apk --release
 
-      - name: Upload APK artifact
+      # שלב 5: העלאת קובץ ה־APK להורדה (Artifact)
+      - name: Upload release APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release.apk
+          name: LOTTOLUCK-Release-APK
           path: build/app/outputs/flutter-apk/app-release.apk
