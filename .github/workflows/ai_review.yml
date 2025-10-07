@@ -33,9 +33,11 @@ jobs:
         run: |
           python .github/ai_review.py
 
-      - name: Upload AI report
+      - name: Upload AI outputs
         uses: actions/upload-artifact@v4
         with:
-          name: ai-review-report
-          path: .github/ai_review_report.md
+          name: ai-review
+          path: |
+            .github/ai_review_report.md
+            .github/ai_fixes.patch
           if-no-files-found: warn
