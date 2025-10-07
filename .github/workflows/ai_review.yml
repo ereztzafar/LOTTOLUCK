@@ -1,11 +1,13 @@
 name: AI Review
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   review:
@@ -20,9 +22,20 @@ jobs:
           python-version: '3.x'
 
       - name: Install dependencies
-        run: pip install openai
+        run: |
+          python -m pip install --upgrade pip
+          pip install openai requests
 
       - name: Run AI Review
         env:
-          OPENAI_API_KEY: ${{ secrets.LOTTOLUCK }}
-        run: python .github/ai_review.py
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+        run: |
+          python .github/ai_review.py
+
+      - name: Upload AI report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-review-report
+          path: .github/ai_review_report.md
+          if-no-files-found: warn
