@@ -18,6 +18,7 @@ INCLUDE_GLOBS = ["lib/**/*.dart", "pubspec.yaml"]
 MAX_FILE_BYTES = 200_000
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5")
 
+
 def load_control():
     if CONTROL_FILE.exists():
         try:
@@ -25,6 +26,7 @@ def load_control():
         except Exception:
             return {}
     return {}
+
 
 def send_telegram(chat_id: str, text: str) -> bool:
     token = os.getenv("TELEGRAM_TOKEN")
@@ -38,6 +40,7 @@ def send_telegram(chat_id: str, text: str) -> bool:
     except Exception as e:
         print(f"⚠️ שגיאת טלגרם: {e}")
         return False
+
 
 def poll_for_approval(chat_id: str, token_code: str, timeout_sec: int = 900) -> bool:
     tg_token = os.getenv("TELEGRAM_TOKEN")
@@ -76,6 +79,7 @@ def poll_for_approval(chat_id: str, token_code: str, timeout_sec: int = 900) -> 
             time.sleep(3)
     return False
 
+
 def collect_files():
     files = []
     for pattern in INCLUDE_GLOBS:
@@ -88,11 +92,50 @@ def collect_files():
                 pass
     return files
 
+
 def openai_client() -> OpenAI:
     api_key = os.getenv("OPENAI_API_KEY", "")
     if not api_key:
         raise SystemExit("Missing OPENAI_API_KEY")
     return OpenAI(api_key=api_key)
+
+
+# מודלים עם טמפרטורה קבועה 1 או שלא תומכים בפרמטר
+FIXED_TEMP_PREFIXES = (
+    "o4",
+    "gpt-4o",
+    "gpt-4.1",
+    "gpt-5",
+    "gpt-4o-audio",
+    "gpt-4o-mini-transcribe",
+)
+
+
+def model_has_fixed_temp(model: str) -> bool:
+    m = (model or "").lower()
+    return any(m.startswith(p) for p in FIXED_TEMP_PREFIXES)
+
+
+def chat_create_smart(client: OpenAI, model: str, messages, temperature: float = 0.2):
+    """
+    מנסה לשלוח temperature רק כאשר המודל לא קבוע.
+    אם בכל זאת מתקבלת שגיאה על הפרמטר temperature מבצע ניסיון נוסף אוטומטי בלי הפרמטר.
+    """
+    try:
+        if model_has_fixed_temp(model):
+            return client.chat.completions.create(model=model, messages=messages)
+        return client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+        )
+    except Exception as e:
+        msg = str(e)
+        # זיהוי שגיאת פרמטר temperature שלא נתמך
+        if "param': 'temperature'" in msg or "unsupported_value" in msg or "temperature' does not support" in msg:
+            return client.chat.completions.create(model=model, messages=messages)
+        raise
+
 
 def run_review(files):
     prompt = """אתה משמש כבודק Flutter.
@@ -108,12 +151,14 @@ def run_review(files):
     content = prompt + "\n\n" + "\n\n".join(parts)
     client = openai_client()
     print("🤖 שולח בקשה ל OpenAI לסקירה...")
-    resp = client.chat.completions.create(
+    resp = chat_create_smart(
+        client=client,
         model=OPENAI_MODEL,
-        temperature=0.2,
         messages=[{"role": "user", "content": content}],
+        temperature=0.2,
     )
     return resp.choices[0].message.content or ""
+
 
 def run_review_with_patch(files):
     # מבקש פורמט דו"ח + בלוק patch אחד
@@ -128,12 +173,16 @@ def run_review_with_patch(files):
     content = user + "".join(parts)
     client = openai_client()
     print("🤖 שולח בקשה ל OpenAI ליצירת דו\"ח ו-patch...")
-    resp = client.chat.completions.create(
-    model=OPENAI_MODEL,
-    messages=[{"role": "user", "content": content}],
-)
-
+    # כאן אין צורך ב system כי אנחנו בממשק chat.completions הישן. אפשר להשחיל את ההוראות בתחילת ההודעה.
+    composed = f"{system}\n\n{content}"
+    resp = chat_create_smart(
+        client=client,
+        model=OPENAI_MODEL,
+        messages=[{"role": "user", "content": composed}],
+        temperature=0.2,
+    )
     return resp.choices[0].message.content or ""
+
 
 def split_report_and_patch(content: str):
     start = content.rfind("```patch")
@@ -145,6 +194,7 @@ def split_report_and_patch(content: str):
     report = content[:start].strip()
     patch = content[start + len("```patch"):end].strip()
     return report, patch
+
 
 def main():
     control = load_control()
@@ -184,7 +234,7 @@ def main():
         print("⏸️ ask_before_fix פעיל אבל אין טלגרם. נעצר ללא Patch.")
         return
 
-    # שלב ב: יצירת דו\"ח נוסף עם Patch לאחר אישור
+    # שלב ב: יצירת דו"ח נוסף עם Patch לאחר אישור
     if gen_patch_after:
         content = run_review_with_patch(files)
         report2, patch = split_report_and_patch(content)
@@ -205,6 +255,7 @@ def main():
         print("ℹ️ דילגתי על יצירת Patch לפי קובץ הבקרה.")
         if telegram_notify and chat_id:
             send_telegram(chat_id, "ℹ️ אושר, אך דילגתי על יצירת Patch לפי קובץ הבקרה.")
+
 
 if __name__ == "__main__":
     main()
