@@ -129,13 +129,10 @@ def run_review_with_patch(files):
     client = openai_client()
     print("🤖 שולח בקשה ל OpenAI ליצירת דו\"ח ו-patch...")
     resp = client.chat.completions.create(
-        model=OPENAI_MODEL,
-        temperature=0.2,
-        messages=[
-            {"role": "system", "content": system},
-            {"role": "user", "content": content},
-        ],
-    )
+    model=OPENAI_MODEL,
+    messages=[{"role": "user", "content": content}],
+)
+
     return resp.choices[0].message.content or ""
 
 def split_report_and_patch(content: str):
