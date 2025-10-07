@@ -1,7 +1,0 @@
-flutter_native_splash:
-  color: "#5B2C98"
-  image: assets/images/splash_icon.png
-  android: true
-  ios: true
-  web: true
-  fill: true  # גורם לתמונה לכסות את כל המסך
