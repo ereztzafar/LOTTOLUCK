@@ -24,7 +24,7 @@ class CityService {
   Future<void> warmUp() async {
     if (_loaded) return;
     try {
-      final raw = await rootBundle.loadString('assets/worldcities.csv'); // נתיב מדויק לפי pubspec
+      final raw = await rootBundle.loadString('assets/worldcities.csv'); // בדיוק כמו ב pubspec
       final rows = const CsvToListConverter(shouldParseNumbers: false).convert(raw);
       if (rows.isEmpty) throw Exception('worldcities.csv is empty');
 
@@ -51,7 +51,7 @@ class CityService {
       for (var i = 1; i < rows.length; i++) {
         final r = rows[i];
         String getStr(int idx) => (idx >= 0 && idx < r.length) ? '${r[idx]}'.trim() : '';
-        double parseD(String s) => double.tryParse(s) ?? 0.0;
+        double toD(String s) => double.tryParse(s) ?? 0.0;
 
         final city = getStr(iCity);
         final country = getStr(iCountry);
@@ -60,8 +60,8 @@ class CityService {
         list.add(CityRow(
           city: city,
           country: country,
-          lat: parseD(getStr(iLat)),
-          lon: parseD(getStr(iLon)),
+          lat: toD(getStr(iLat)),
+          lon: toD(getStr(iLon)),
           tz: iTz >= 0 ? getStr(iTz) : null,
         ));
       }
