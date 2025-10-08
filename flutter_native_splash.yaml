@@ -4,14 +4,12 @@ flutter_native_splash:
   web: true
 
   color: "#5B2C98"
-  # אפשר להשאיר background_image כללי אם תרצה ל-Android<12/iOS/Web,
-  # אבל ל-Android 12 אנחנו מבטלים אותו:
-  # background_image: assets/images/splash_20_9.png
   fullscreen: true
+  # לא לשים כאן background_image כללי אם אינך רוצה שהוא ייווצר לאנדרואיד
 
   android_12:
     color: "#5B2C98"
-    image: assets/images/transparent.png   # 1x1 שקוף קטן
+    image: assets/images/transparent.png   # PNG שקוף קטן (1x1 מספיק)
     # בלי background_image כאן!
 
   ios_content_mode: scaleAspectFill
