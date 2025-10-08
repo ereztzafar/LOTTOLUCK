@@ -1,4 +1,6 @@
-# Miscellaneous
+# -------------------------
+# כלליים
+# -------------------------
 *.class
 *.log
 *.pyc
@@ -12,34 +14,60 @@
 .swiftpm/
 migrate_working_dir/
 
-# IntelliJ related
+# -------------------------
+# IDE
+# -------------------------
 *.iml
 *.ipr
 *.iws
 .idea/
+# .vscode/   # בטל הערה אם לא רוצים לעקוב אחרי תיקיית VS Code בפרויקט
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# -------------------------
+# Flutter / Dart / Pub
+# -------------------------
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
+**/doc/api/
+**/ios/Flutter/.last_build_id
 /build/
 
-# Symbolication related
-app.*.symbols
-
-# Obfuscation related
-app.*.map.json
-
-# Android Studio will place build artifacts here
+# -------------------------
+# Android
+# -------------------------
+# ארטיפקטים
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# קבצים מקומיים/רגישים (לא להעלות ל־VCS)
+**/local.properties
+**/key.properties
+**/*.keystore
+**/*.jks
+# אם הפרויקט ציבורי—רצוי לא להעלות. אם פרטי/CI צריך—השאר במעקב
+# **/google-services.json
+
+# -------------------------
+# iOS / macOS
+# -------------------------
+**/DerivedData/
+**/*.xcworkspace/xcuserdata/
+
+# CocoaPods (אם משתמשים)
+ios/Pods/
+
+# קישורים/תוצרים זמניים של Flutter
+**/.symlinks/
+
+# אם הפרויקט ציבורי—רצוי לא להעלות. אם פרטי/CI צריך—השאר במעקב
+# **/GoogleService-Info.plist
+
+# -------------------------
+# סימבוליקציה / אובסקורציה
+# -------------------------
+app.*.symbols
+app.*.map.json
