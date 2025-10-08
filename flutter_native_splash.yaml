@@ -1,10 +1,17 @@
 flutter_native_splash:
-  color: "#5B2C98"
-  image: assets/splash_icon.png
   android: true
   ios: true
   web: true
 
+  color: "#5B2C98"
+  background_image: assets/images/lucky_balls_full.png
+  image: assets/images/lucky_balls.png
+  fullscreen: true
+
   android_12:
     color: "#5B2C98"
-    image: assets/splash_icon.png
+    image: assets/images/lucky_balls.png
+    icon_background_color: "#5B2C98"
+
+  ios_content_mode: scaleAspectFill
+
