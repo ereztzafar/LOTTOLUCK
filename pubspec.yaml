@@ -37,6 +37,7 @@ flutter:
     - assets/worldcities.csv
     - assets/planets/
     - assets/fonts/
+    - assets/images/
     - assets/app_icon.png
     - assets/splash_icon.png
   fonts:
