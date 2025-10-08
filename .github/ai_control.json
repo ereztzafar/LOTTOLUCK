@@ -1,7 +1,0 @@
-{
-  "ask_before_fix": true,
-  "telegram_notify": true,
-  "telegram_chat_id": "813610615",
-  "generate_patch_after_approval": true
-}
-
