@@ -38,8 +38,10 @@ flutter:
     - assets/planets/
     - assets/fonts/
     - assets/images/
-    - assets/app_icon.png
-    - assets/splash_icon.png
+    - assets/images/splash_20_9.png
+    - assets/images/splash_19_5_9.png
+    - assets/images/splash_16_9.png
+    - assets/images/transparent.png
   fonts:
     - family: NotoSansSymbols2
       fonts:
@@ -49,17 +51,22 @@ flutter_icons:
   android: true
   ios: true
   web: true
-  image_path: assets/app_icon.png
+  image_path: assets/images/lucky_balls.png
   adaptive_icon_background: "#5B2C98"
 
-# מסך פתיחה מלא מסך
+# מסך פתיחה מלא מסך - רקע מלא ללא אייקון מרכזי
 flutter_native_splash:
   android: true
   ios: true
   web: true
+  image_path: assets/images/splash_20_9.png
+
   color: "#5B2C98"
-  background_image: assets/splash_icon.png
+  background_image: assets/images/splash_20_9.png
   fullscreen: true
+
   android_12:
-    background_image: assets/splash_icon.png
+    color: "#5B2C98"
+    background_image: assets/images/splash_20_9.png
+
   ios_content_mode: scaleAspectFill

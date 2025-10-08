@@ -3,14 +3,13 @@ import 'dart:math' as math;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-import 'splash_gate.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
-// ✅ הוספה: כדי לשלוט על מסך הפתיחה
+// שליטה על מסך הפתיחה ה־native
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 import 'models/user_profile.dart';
@@ -27,7 +26,7 @@ import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'services/asc_mc.dart';
 import 'widgets/astro_wheel.dart';
 
-/// האם אנו רצים על מובייל (אנדרואיד/אייפון) — עובד גם בווב/דסקטופ
+/// האם אנו רצים על מובייל (אנדרואיד או אייפון)
 bool get kIsMobile =>
     !kIsWeb &&
     (defaultTargetPlatform == TargetPlatform.android ||
@@ -102,7 +101,7 @@ String houseSystemLabel(BuildContext context, HouseSystem hs) {
 }
 
 Future<void> main() async {
-  // ✅ שמירה על הספלאש על המסך בזמן האתחולים
+  // משמרים את הספלאש עד שהאפליקציה מוכנה להתחיל לרוץ
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
@@ -112,12 +111,11 @@ Future<void> main() async {
     await AdsService.init();
   }
 
-  // ✅ השהייה של ~5 שניות למסך פתיחה נעים
-  await Future.delayed(const Duration(seconds: 5));
-
-  // ✅ הסרת הספלאש והרצת האפליקציה
-  FlutterNativeSplash.remove();
+  // מריצים את האפליקציה
   runApp(const LottoLuckApp());
+
+  // מסירים את הספלאש מיד כשה־Flutter מוכן לציור
+  FlutterNativeSplash.remove();
 }
 
 class LottoLuckApp extends StatelessWidget {
@@ -168,8 +166,7 @@ class LottoLuckApp extends StatelessWidget {
         Locale('es'),
         Locale('pt'),
       ],
-      home: const SplashGate(),
-      // ✅ מאפשר ל-SplashGate לנווט למסך ההרשמה בלי תלות ישירה במחלקה
+      home: const RegistrationScreen(),
       routes: {
         '/register': (_) => const RegistrationScreen(),
       },
@@ -195,7 +192,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   String _tzId = 'Asia/Jerusalem';
   HouseSystem _houseSystem = HouseSystem.placidus;
 
-  bool _lockCoreFields = false; // נועל שם/עיר/תאריך/שעה/אזור זמן אם נטען פרופיל
+  bool _lockCoreFields = false; // נועל שם, עיר, תאריך, שעה, אזור זמן אם נטען פרופיל
   UserProfile? _savedProfile;
 
   static const List<String> _ianaChoices = <String>[
@@ -374,7 +371,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     setState(() => _tzId = guess);
   }
 
-  /// קריאה ל־API תחזית (שרת Render)
+  /// קריאה ל־API תחזית
   Future<Map<String, dynamic>> _runForecast() async {
     final dateStr = DateFormat('yyyy-MM-dd').format(selectedDate!);
     final timeStr =
@@ -424,7 +421,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     try {
       final data = await _runForecast();
 
-      // שמירת פרופיל לאחר מילוי/עדכון
+      // שמירת פרופיל לאחר מילוי או עדכון
       final birthDateStr = DateFormat('yyyy-MM-dd').format(selectedDate!);
       final birthTimeStr =
           '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}';
@@ -687,7 +684,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
                     const SizedBox(height: 12),
 
-                    // House System (ניתן לשנות תמיד)
+                    // House System
                     InputDecorator(
                       decoration: InputDecoration(
                         labelText: l.house_system_label,
@@ -1331,9 +1328,9 @@ class _ForecastScreenState extends State<ForecastScreen> {
                         TextSpan(text: aspect, style: TextStyle(color: _aspectColor(aspect), fontWeight: FontWeight.bold)),
                         TextSpan(text: ' ($orb°) - ', style: const TextStyle(color: Colors.white70)),
                         ..._nameWithR(nPlanet, nRetro, Colors.amber),
-                        const TextSpan(text: ' (', style: const TextStyle(color: Colors.white70)),
+                        const TextSpan(text: ' (', style: TextStyle(color: Colors.white70)),
                         TextSpan(text: nPos, style: const TextStyle(color: Colors.white70)),
-                        const TextSpan(text: ')', style: const TextStyle(color: Colors.white70)),
+                        const TextSpan(text: ')', style: TextStyle(color: Colors.white70)),
                       ],
                     ),
                   ),
