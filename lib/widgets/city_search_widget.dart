@@ -1,100 +1,92 @@
+// lib/widgets/city_search_widget.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:csv/csv.dart';
-import 'package:lottoluck/models/city.dart'; // ✅ שימוש במחלקת City המקורית
+import '../services/city_service.dart';
+import '../models/city.dart'; // המודל שלך שבו יש name, latitude, longitude
 
 class CitySearchWidget extends StatefulWidget {
-  final Function(City) onCitySelected;
-
+  final void Function(City city) onCitySelected;
   const CitySearchWidget({super.key, required this.onCitySelected});
 
   @override
-  _CitySearchWidgetState createState() => _CitySearchWidgetState();
+  State<CitySearchWidget> createState() => _CitySearchWidgetState();
 }
 
 class _CitySearchWidgetState extends State<CitySearchWidget> {
-  List<City> _cities = [];
-  List<City> _filteredCities = [];
-  final TextEditingController _controller = TextEditingController();
-  bool _showSuggestions = true; // ✅ משתנה חדש לשליטה על התצוגה
+  final TextEditingController _ctrl = TextEditingController();
+  bool _ready = false;
 
   @override
   void initState() {
     super.initState();
-    _loadCities();
-  }
-
-  Future<void> _loadCities() async {
-    final rawData = await rootBundle.loadString('assets/worldcities.csv');
-    List<List<dynamic>> csvTable = const CsvToListConverter().convert(rawData);
-
-    List<City> cities = [];
-    for (int i = 1; i < csvTable.length; i++) {
-      try {
-        final row = csvTable[i];
-        final name = row[0].toString();
-        final country = row[4].toString();
-        final lat = double.parse(row[2].toString());
-        final lon = double.parse(row[3].toString());
-        cities.add(City(name: name, country: country, latitude: lat, longitude: lon));
-      } catch (_) {
-        // שורות לא תקינות יידחו
+    CityService.I.warmUp().then((_) {
+      if (mounted) setState(() => _ready = true);
+    }).catchError((e) {
+      if (mounted) {
+        setState(() => _ready = true);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('שגיאה בטעינת ערים: $e')));
       }
-    }
-
-    setState(() {
-      _cities = cities;
-      _filteredCities = cities;
-    });
-  }
-
-  void _filterCities(String query) {
-    setState(() {
-      _showSuggestions = true; // ✅ בכל שינוי טקסט – מציג את הרשימה שוב
-      _filteredCities = _cities
-          .where((city) => city.name.toLowerCase().contains(query.toLowerCase()))
-          .toList();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 300, // גובה קבוע
-      child: Column(
-        children: [
-          TextField(
-            controller: _controller,
-            onChanged: _filterCities,
-            decoration: const InputDecoration(
-              labelText: 'הכנס שם עיר',
-              prefixIcon: Icon(Icons.location_city),
-            ),
+    if (!_ready) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: LinearProgressIndicator(),
+      );
+    }
+
+    return Autocomplete<CityRow>(
+      displayStringForOption: (c) => '${c.city}, ${c.country}',
+      optionsBuilder: (TextEditingValue te) async {
+        return await CityService.I.search(te.text);
+      },
+      onSelected: (CityRow row) {
+        // צור מופע City לפי המודל שלך
+        final city = City(
+          name: row.city,
+          latitude: row.lat,
+          longitude: row.lon,
+        );
+        _ctrl.text = row.city;
+        widget.onCitySelected(city);
+      },
+      fieldViewBuilder: (context, textController, focusNode, onFieldSubmitted) {
+        return TextField(
+          controller: textController,
+          focusNode: focusNode,
+          decoration: const InputDecoration(
+            labelText: 'עיר',
+            border: OutlineInputBorder(),
+            suffixIcon: Icon(Icons.location_city),
           ),
-          const SizedBox(height: 10),
-          if (_showSuggestions)
-            Expanded(
+        );
+      },
+      optionsViewBuilder: (context, onSelected, options) {
+        final list = options.toList();
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            elevation: 6,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 300, maxWidth: 600),
               child: ListView.builder(
-                itemCount: _filteredCities.length,
-                itemBuilder: (context, index) {
-                  final city = _filteredCities[index];
+                padding: EdgeInsets.zero,
+                itemCount: list.length,
+                itemBuilder: (ctx, i) {
+                  final c = list[i];
                   return ListTile(
-                    title: Text('${city.name}, ${city.country}'),
-                    subtitle: Text('Lat: ${city.latitude}, Lon: ${city.longitude}'),
-                    onTap: () {
-                      widget.onCitySelected(city);
-                      _controller.text = city.name;
-                      FocusScope.of(context).unfocus();
-                      setState(() {
-                        _showSuggestions = false; // ✅ הסתרה לאחר בחירה
-                      });
-                    },
+                    title: Text('${c.city}, ${c.country}'),
+                    subtitle: c.tz == null ? null : Text(c.tz!),
+                    onTap: () => onSelected(c),
                   );
                 },
               ),
             ),
-        ],
-      ),
+          ),
+        );
+      },
     );
   }
 }
