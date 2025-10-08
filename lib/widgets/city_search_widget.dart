@@ -1,7 +1,7 @@
 // lib/widgets/city_search_widget.dart
 import 'package:flutter/material.dart';
 import '../services/city_service.dart';
-import '../models/city.dart'; // המודל שלך שבו יש name, latitude, longitude
+import '../models/city.dart'; // המודל שלך: name, country, latitude, longitude
 
 class CitySearchWidget extends StatefulWidget {
   final void Function(City city) onCitySelected;
@@ -23,7 +23,9 @@ class _CitySearchWidgetState extends State<CitySearchWidget> {
     }).catchError((e) {
       if (mounted) {
         setState(() => _ready = true);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('שגיאה בטעינת ערים: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('שגיאה בטעינת ערים: $e')),
+        );
       }
     });
   }
@@ -39,15 +41,18 @@ class _CitySearchWidgetState extends State<CitySearchWidget> {
 
     return Autocomplete<CityRow>(
       displayStringForOption: (c) => '${c.city}, ${c.country}',
+      // אם ה־CityService.search מחזיר Future זו עדיין קריאה תקפה בגרסה הנוכחית
       optionsBuilder: (TextEditingValue te) async {
         return await CityService.I.search(te.text);
       },
       onSelected: (CityRow row) {
-        // צור מופע City לפי המודל שלך
         final city = City(
           name: row.city,
+          country: row.country, // חובה לפי ה־constructor שלך
           latitude: row.lat,
           longitude: row.lon,
+          // אם למודל שלך יש שדה חובה timezone בטל את ההערה:
+          // timezone: row.tz,
         );
         _ctrl.text = row.city;
         widget.onCitySelected(city);
