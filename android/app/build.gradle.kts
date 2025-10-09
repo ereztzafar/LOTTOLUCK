@@ -5,8 +5,12 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// קריאת גרסת האפליקציה מ-Flutter
+val flutterVersionCode = project.findProperty("flutter.versionCode")?.toString()?.toInt() ?: 1
+val flutterVersionName = project.findProperty("flutter.versionName")?.toString() ?: "1.0"
+
 android {
-    namespace = "com.example.lottoluck"
+    namespace = "com.example.lottoluck" // ניתן לשנות לשם החבילה שלך
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,30 +24,12 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        // TODO: עדכן לשם החבילה הייחודי שלך
         applicationId = "com.example.lottoluck"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        // בראש הקובץ או לפני android { ... } הוסף:
-val flutterVersionCode = project.findProperty("flutter.versionCode")?.toString()?.toInt() ?: 1
-val flutterVersionName = project.findProperty("flutter.versionName")?.toString() ?: "1.0"
-
-android {
-    // ... שאר ההגדרות
-
-    defaultConfig {
-        applicationId = "com.yourcompany.lottoluck"   // עדכן לשם החבילה שלך
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-
-        // השתמש במשתנים שיצרנו
         versionCode = flutterVersionCode
         versionName = flutterVersionName
-    }
-}
-
     }
 
     buildTypes {

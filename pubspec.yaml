@@ -47,20 +47,15 @@ flutter:
       fonts:
         - asset: assets/fonts/NotoSansSymbols2-Regular.ttf
 
+# הגדרות אייקון האפליקציה
 flutter_icons:
   android: true
   ios: true
-  web: true
-  image_path: assets/images/lucky_balls.png
+  image_path: "assets/images/lucky_balls.png"
   adaptive_icon_background: "#5B2C98"
 
-# מסך פתיחה מלא מסך - רקע מלא ללא אייקון מרכזי
+# הגדרות מסך הפתיחה (Splash Screen)
 flutter_native_splash:
-  android: true
-  ios: true
-  web: true
-  image_path: assets/images/splash_20_9.png
-
   color: "#5B2C98"
   background_image: assets/images/splash_20_9.png
   fullscreen: true
@@ -68,5 +63,6 @@ flutter_native_splash:
   android_12:
     color: "#5B2C98"
     background_image: assets/images/splash_20_9.png
+    # אין image כאן כדי שלא יופיע אייקון במרכז
 
   ios_content_mode: scaleAspectFill
