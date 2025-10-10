@@ -71,3 +71,5 @@ ios/Pods/
 # -------------------------
 app.*.symbols
 app.*.map.json
+local.txt  
+remote.txt 
