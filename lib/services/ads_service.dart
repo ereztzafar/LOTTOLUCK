@@ -8,12 +8,12 @@ class AdsService {
   static bool get _isMobile => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
   static String get _bannerId => Platform.isAndroid
-      ? 'ca-app-pub-3940256099942544/6300978111' // Android TEST banner
-      : 'ca-app-pub-3940256099942544/2934735716'; // iOS TEST banner
+    ? 'ca-app-pub-6988579003966858/6151952401' // Android REAL banner
+    : 'ca-app-pub-6988579003966858/6151952401'; // iOS placeholder if you add later
 
-  static String get _interstitialId => Platform.isAndroid
-      ? 'ca-app-pub-3940256099942544/1033173712' // Android TEST interstitial
-      : 'ca-app-pub-3940256099942544/4411468910'; // iOS TEST interstitial
+static String get _interstitialId => Platform.isAndroid
+    ? 'ca-app-pub-6988579003966858/6151952401' // אם תיצור Interstitial נפרד תעדכן כאן
+    : 'ca-app-pub-6988579003966858/6151952401';
 
   static Future<void> init() async {
     if (!_isMobile) return;
