@@ -232,5 +232,6 @@ def pro_forecast():
 # ---------- Main (dev only) ----------
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", "8000"))
+    import os
+    port = int(os.environ.get("PORT", "10000"))
     app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False, threaded=True)
