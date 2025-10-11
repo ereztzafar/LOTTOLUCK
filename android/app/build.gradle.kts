@@ -19,13 +19,13 @@ android {
     namespace = "com.lottoluck.app"
 
     // דרישה עדכנית של Google Play - יעד API 35
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     defaultConfig {
         applicationId = "com.lottoluck.app"
         minSdk = flutter.minSdkVersion
-        targetSdk = 35
+        targetSdk = 36
         versionCode = flutterVersionCode
         versionName = flutterVersionName
         multiDexEnabled = true
