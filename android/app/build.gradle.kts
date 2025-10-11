@@ -6,7 +6,7 @@ import java.io.File
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    // ה-Flutter Gradle Plugin חייב להיות אחרי Android ו-Kotlin
+    // ה־Flutter Gradle Plugin חייב להיות אחרי Android ו־Kotlin
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -18,7 +18,7 @@ android {
     // שם חבילה סופי ויחיד
     namespace = "com.lottoluck.app"
 
-    // דרישה עדכנית של Google Play - יעד API 35
+    // יעדי SDK
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
@@ -33,18 +33,11 @@ android {
 
     signingConfigs {
         create("release") {
-            val props = Properties()
-            val propsFile: File = rootProject.file("android/key.properties")
-            if (propsFile.exists()) {
-                props.load(FileInputStream(propsFile))
-                val storePath = props["storeFile"] as String?
-                if (storePath != null) {
-                    storeFile = file(storePath)
-                }
-                storePassword = props["storePassword"] as String?
-                keyAlias = props["keyAlias"] as String?
-                keyPassword = props["keyPassword"] as String?
-            }
+            // חתימה קשיחה לקובץ בתוך android/app
+            storeFile = File(rootDir, "android/app/upload-keystore.jks")
+            storePassword = "orpaz150"
+            keyAlias = "upload"
+            keyPassword = "orpaz150"
         }
     }
 
