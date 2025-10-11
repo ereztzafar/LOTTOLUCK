@@ -34,7 +34,7 @@ android {
     signingConfigs {
         create("release") {
             // חתימה קשיחה לקובץ בתוך android/app
-            storeFile = File(rootDir, "android/app/upload-keystore.jks")
+            storeFile = File(rootDir, "app/upload-keystore.jks")
             storePassword = "orpaz150"
             keyAlias = "upload"
             keyPassword = "orpaz150"
